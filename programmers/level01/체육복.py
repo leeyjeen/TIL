@@ -11,7 +11,6 @@ def solution(n, lost, reserve):
             lost_set.remove(r+1)
     return n - len(lost_set)
 
-# # failed to pass 7th test case.. 
 # def solution(n, lost, reserve):
 #     lost_dict, reserve_dict = {}, {}
 #     for l in lost:
@@ -24,6 +23,8 @@ def solution(n, lost, reserve):
 #             reserve_dict[l] = 0
 #             lost_dict[l] = 0
 #     for l in lost_dict:
+#         if lost_dict[l] == 0:
+#             continue
 #         can_borrow_prev = True if l-1 in reserve_dict and reserve_dict[l-1] == 1 else False
 #         can_borrow_next = True if l+1 in reserve_dict and reserve_dict[l+1] == 1 else False
 #         if can_borrow_prev and not can_borrow_next:
@@ -37,11 +38,10 @@ def solution(n, lost, reserve):
 #         if can_borrow_prev and can_borrow_next:
 #             reserve_dict[l-1] = 0
 #             lost_dict[l] = 0
-            
 #     for _, v in lost_dict.items():
 #         if v == 1:
 #             n -= 1
 #     return n
     
 # if __name__ == "__main__":
-#     print(solution(5, [2,3,4], [1,3]))
+#     print(solution(3, [1,3], [1,2]))
