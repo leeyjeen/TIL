@@ -119,8 +119,174 @@ Output:
 3
 ```
 
+## 노드 삽입하기
+노드를 추가하는 방식은 세 가지가 있다.
+1) 연결 리스트의 맨 앞에 추가하기
+2) 주어진 노드 다음에 추가하기
+3) 연결 리스트의 마지막에 추가하기
 
+## ```맨 앞에``` 노드 추가하기
+- 새 노드는 항상 연결 리스트의 Head 전에 추가된다.  
+- 새로 추가된 노드는 연결 리스트의 새로운 Head가 된다.  
+(ex. 주어진 연결 리스트가 ```10->15->20->25```이고 ```5```를 맨 앞에 추가한다면, 연결 리스트는 ```5->10->15->20->25```가 된다.)
+- ```push()```함수를 리스트의 맨 앞에 추가하는 함수라고 하자. ```push()```는 Head 포인터가 새로운 노드를 가리키도록 변경해야 하므로, Head 포인터를 가리키는 포인터를 입력 받아야 한다. (C의 경우)
+
+![Alt text](./images/02.Linked_List_Insert.png?raw=true "Linked List Insert")
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 시작 부분에 새로운 노드를 삽입하는 함수
+def push(self, new_data):
+    # 노드 할당 및 데이터 초기화
+    new_node = Node(new_data)
+
+    # 새 노드의 next가 현재의 head를 가리키도록 설정
+    new_node.next = self.head
+
+    # head가 새 노드를 가리키도록 설정
+    self.head = new_node
+```
+```push()```의 시간 복잡도는 일정한 양의 작업을 하기 때문에 ```O(1)```이다.
+
+## ```주어진 노드 뒤에``` 노드 추가하기
+- 한 노드에 대한 포인터가 주어지고, 해당 노드 뒤에 새로운 노드를 추가한다면, 
+
+![Alt text](./images/03.Linked_List_Insert2.png?raw=true "Linked List Insert")
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 주어진 노드 뒤에 새 노드를 추가하는 함수
+def insertAfter(self, prev_node, new_data):
+    # 주어진 노드의 존재 여부 검사
+    if prev_node is None:
+        print("prev_node는 연결 리스트 내부에 존재하지 않습니다.")
+        return
+    
+    # 새 노드 생성 및 데이터 초기화
+    new_node = Node(new_data)
+
+    # 새 노드가 이전 노드가 가리키던 것을 가리키도록 설정
+    new_node.next = prev_node.next
+
+    # 이전 노드가 새 노드를 가리키도록 설정
+    prev_node.next = new_node
+```
+```insertAfter()```의 시간 복잡도는 일정한 양의 작업을 하기 때문에 ```O(1)```이다.
+
+## ```맨 뒤에``` 노드 추가하기
+새 노드는 항상 주어진 연결 리스트의 마지막 노드 뒤에 추가된다.  
+예를 들어 ```5->10->15->20->25```의 연결리스트가 주어지고 ```30```이라는 아이템을 끝에 추가한다면, 연결 리스트는 ```5->10->15->20->25->30```이 된다.
+연결 리스트는 일반적으로 그것의 head로 표현되기 떼문에, 리스트의 *끝까지 순회한 후* 마지막 노드를 새 노드로 변경하여야 한다.
+
+![Alt text](./images/04.Linked_List_Insert3.png?raw=true "Linked List Insert")
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 맨 끝에 노드를 추가하는 함수
+def append(self, new_data):
+    # 새 노드 생성 및 데이터 초기화
+    new_node = Node(new_data)
+
+    # 연결 리스트가 비어있는 경우, 새 노드를 head로 지정
+    if self.head is None:
+        self.head = new_node
+        return
+    
+    # 마지막 노드까지 순회
+    last = self.head
+    while last.next:
+        last = last.next
+    
+    # 마지막 노드 변경
+    last.next = new_node
+```
+```append()```의 시간 복잡도는 head에서부터 끝까지 반복이 있기 때문에 연결 리스트 노드 개수가 n이라면 ```O(n)```이다. 이 메서드는 연결 리스트의 tail을 가리키는 추가 포인터를 이용하면 O(1)까지 최적화될 수 있다.
+
+```python
+# 노드 클래스
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+# 연결 리스트 클래스
+class LinkedList:
+    def __init__(self):
+        self.head = None
+        
+    # 시작 부분에 새로운 노드를 삽입하는 함수
+    def push(self, new_data):
+        # 노드 할당 및 데이터 초기화
+        new_node = Node(new_data)
+
+        # 새 노드의 next가 현재의 head를 가리키도록 설정
+        new_node.next = self.head
+
+        # head가 새 노드를 가리키도록 설정
+        self.head = new_node
+        
+    # 주어진 노드 뒤에 새 노드를 추가하는 함수
+    def insertAfter(self, prev_node, new_data):
+        # 주어진 노드의 존재 여부 검사
+        if prev_node is None:
+            print("prev_node는 연결 리스트 내부에 존재하지 않습니다.")
+            return
+        
+        # 새 노드 생성 및 데이터 초기화
+        new_node = Node(new_data)
+
+        # 새 노드가 이전 노드가 가리키던 것을 가리키도록 설정
+        new_node.next = prev_node.next
+
+        # 이전 노드가 새 노드를 가리키도록 설정
+        prev_node.next = new_node
+        
+    # 맨 끝에 노드를 추가하는 함수
+    def append(self, new_data):
+        # 새 노드 생성 및 데이터 초기화
+        new_node = Node(new_data)
+
+        # 연결 리스트가 비어있는 경우, 새 노드를 head로 지정
+        if self.head is None:
+            self.head = new_node
+            return
+        
+        # 마지막 노드까지 순회
+        last = self.head
+        while last.next:
+            last = last.next
+        
+        # 마지막 노드 변경
+        last.next = new_node
+
+    # 연결 리스트의 내용을 Head부터 시작해서 출력하는 함수
+    def printList(self):
+        temp = self.head
+        while temp:
+            print(temp.data)
+            temp = temp.next
+            
+if __name__ == "__main__":
+    linked_list = LinkedList()
+    
+    linked_list.append(6) # 6->None
+    linked_list.push(7) # 7->6->None
+    linked_list.push(1) # 1->7->6->None
+    linked_list.append(4) # 1->7->6->4->None
+    linked_list.insertAfter(linked_list.head.next, 8) # 1->7->8->6->4->None
+
+    linked_list.printList()
+```
+Output:
+```bash
+1
+7
+8
+6
+4
+```
 
 ## Reference
 - https://www.geeksforgeeks.org/data-structures/linked-list/#singlyLinkedList
 - https://www.geeksforgeeks.org/linked-list-set-1-introduction/
+- https://www.geeksforgeeks.org/linked-list-set-2-inserting-a-node/
