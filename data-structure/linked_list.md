@@ -38,6 +38,7 @@ id[] = [1000, 1010, 1050, 2000, 2040]
 2) 포인터에 대한 메모리 공간이 리스트의 각 요소에 추가되어야 한다.
 3) 캐시 친화적이지 않다. 배열의 요소는 연결 리스트의 경우에는 없는 참조의 지역성이 있다.
 
+# Singly Linked List | 단일 연결 리스트
 ## 표현
 연결 리스트는 연결 리스트의 첫 번째 노드를 가리키는 포인터에 의해 표현된다. 첫 번째 노드는 HEAD라고 부른다. 만약 연결 리스트가 비어 있다면, HEAD의 값은 NULL이다.  
 리스트의 각 노드는 최소 두 부분으로 구성된다.
@@ -203,69 +204,6 @@ def append(self, new_data):
 ```append()```의 시간 복잡도는 head에서부터 끝까지 반복이 있기 때문에 연결 리스트 노드 개수가 n이라면 ```O(n)```이다. 이 메서드는 연결 리스트의 tail을 가리키는 추가 포인터를 이용하면 O(1)까지 최적화될 수 있다.
 
 ```python
-# 노드 클래스
-class Node:
-    def __init__(self, data):
-        self.data = data
-        self.next = None
-
-# 연결 리스트 클래스
-class LinkedList:
-    def __init__(self):
-        self.head = None
-        
-    # 시작 부분에 새로운 노드를 삽입하는 함수
-    def push(self, new_data):
-        # 노드 할당 및 데이터 초기화
-        new_node = Node(new_data)
-
-        # 새 노드의 next가 현재의 head를 가리키도록 설정
-        new_node.next = self.head
-
-        # head가 새 노드를 가리키도록 설정
-        self.head = new_node
-        
-    # 주어진 노드 뒤에 새 노드를 추가하는 함수
-    def insertAfter(self, prev_node, new_data):
-        # 주어진 노드의 존재 여부 검사
-        if prev_node is None:
-            print("prev_node는 연결 리스트 내부에 존재하지 않습니다.")
-            return
-        
-        # 새 노드 생성 및 데이터 초기화
-        new_node = Node(new_data)
-
-        # 새 노드가 이전 노드가 가리키던 것을 가리키도록 설정
-        new_node.next = prev_node.next
-
-        # 이전 노드가 새 노드를 가리키도록 설정
-        prev_node.next = new_node
-        
-    # 맨 끝에 노드를 추가하는 함수
-    def append(self, new_data):
-        # 새 노드 생성 및 데이터 초기화
-        new_node = Node(new_data)
-
-        # 연결 리스트가 비어있는 경우, 새 노드를 head로 지정
-        if self.head is None:
-            self.head = new_node
-            return
-        
-        # 마지막 노드까지 순회
-        last = self.head
-        while last.next:
-            last = last.next
-        
-        # 마지막 노드 변경
-        last.next = new_node
-
-    # 연결 리스트의 내용을 Head부터 시작해서 출력하는 함수
-    def printList(self):
-        temp = self.head
-        while temp:
-            print(temp.data)
-            temp = temp.next
-            
 if __name__ == "__main__":
     linked_list = LinkedList()
     
@@ -286,7 +224,222 @@ Output:
 4
 ```
 
+## 노드 삭제하기
+key가 주어지면 연결 리스트에서 해당 key의 첫 번째 항목을 삭제하자.  
+연결 리스트에서 노드를 삭제하기 위해서 다음 단계를 수행해야 한다.
+1) 삭제할 노드의 이전 노드를 찾는다.
+2) 이전 노드의 next를 변경한다.
+3) 삭제할 노드의 메모리를 해제한다.
+
+![Alt text](./images/05.Linked_List_Delete.png?raw=true "Linked List Delete")
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트에서 key의 첫 번째 항목을 삭제하는 함수
+def deleteNode(self, key):
+    # head 노드 임시 보관
+    temp = self.head
+
+    # head 노드 자체가 삭제할 key를 가지고 있다면
+    if temp is not None:
+        if temp.data == key:
+            self.head = temp.next
+            temp = None
+            return
+    
+    # 삭제할 key를 탐색한다.
+    # prev.next를 변경하기 위해 이전 노드를 찾는다.
+    while temp is not None:
+        if temp.data == key:
+            break
+        prev = temp
+        temp = temp.next
+    
+    # 연결 리스트에 key가 존재하지 않는다면
+    if temp == None:
+        return
+    
+    # 연결 리스트에서 노드 연결 해제
+    prev.next = temp.next
+
+    temp = None
+```
+```python
+if __name__ == "__main__":
+    linked_list = LinkedList()
+    
+    linked_list.append(6) # 6->None
+    linked_list.push(7) # 7->6->None
+    linked_list.push(1) # 1->7->6->None
+    linked_list.append(4) # 1->7->6->4->None
+    linked_list.deleteNode(6) # 1->7->4->None
+    linked_list.insertAfter(linked_list.head.next, 8) # 1->7->8->4->None
+
+    linked_list.printList()
+```
+Outptut:
+```bash
+1
+7
+8
+4
+```
+
+## 주어진 위치의 노드 삭제하기
+삭제할 노드가 root라면 단순하게 삭제한다. 중간 노드를 삭제하려면 삭제할 노드의 이전 노드를 가리키는 포인터를 가지고 있어야 한다. 따라서 position이 0이 아닌 경우 ```position-1```번의 반복을 수행 후 이전 노드를 가리키는 포인터를 얻어야 한다.
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 리스트의 head로의 reference와 position이 주어졌을 때
+# 주어진 position의 노드를 삭제하는 함수
+def deleteNodeAt(self, position):
+    # 연결 리스트가 비어 있는 경우
+    if self.head == None:
+        return
+    
+    # head 노드 임시 보관
+    temp = self.head
+
+    # 삭제할 노드가 head인 경우
+    if position == 0:
+        self.head = temp.next
+        temp = None
+        return
+
+    # 삭제할 노드의 이전 노드 찾기
+    for i in range(position-1):
+        temp = temp.next
+        if temp is None:
+            break
+    
+    # position이 노드 개수보다 큰 경우
+    if temp is None:
+        return
+    if temp.next is None:
+        return
+    
+    # temp.next의 노드가 삭제할 노드인 경우
+    # 삭제할 노드의 next를 가리키는 포인터를 보관
+    next = temp.next.next
+
+    # 연결 리스트에서 노드 연결 해제
+    temp.next = next
+```
+```python   
+if __name__ == "__main__":
+    linked_list = LinkedList()
+    
+    linked_list.append(6) # 6->None
+    linked_list.push(7) # 7->6->None
+    linked_list.push(1) # 1->7->6->None
+    linked_list.append(4) # 1->7->6->4->None
+    linked_list.deleteNode(6) # 1->7->4->None
+    linked_list.deleteNodeAt(1) # 1->4->None
+    linked_list.insertAfter(linked_list.head.next, 8) # 1->4->8->None
+
+    linked_list.printList()
+```
+Output:
+```
+1
+4
+8
+```
+
+## 연결 리스트 삭제하기
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트를 순회하며 모든 노드를 삭제하는 함수
+def deleteList(self):
+    current = self.head
+    while current:
+        next_node = current.next
+        del current.data
+        current = next
+```
+
+## 연결 리스트 길이 찾기
+주어진 단일 연결 리스트의 노드 개수를 세는 함수를 작성해보자.
+
+![Alt text](./images/06.Linked_List_Length.png?raw=true "Linked List Length")
+
+예를 들어 연결리스트 ```1->3->1->2->1```인 경우 5를 리턴해야 한다.
+
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트의 전체 노드 개수를 세는 함수
+def getCount(self):
+    temp = self.head
+    count = 0
+
+    while temp:
+        count += 1
+        temp = temp.next
+    return count
+```
+
+## 연결 리스트 요소 탐색하기
+단일 연결 리스트에서 원하는 요소를 탐색하는 함수를 작성해보자.  
+함수는 연결 리스트에 값이 존재할 경우 ```true```, 아닌 경우 ```false```를 반환한다.  
+
+### 반복문으로 풀기
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트에 특정 값이 존재하는지 검사하는 함수
+def searchByIteration(self, x):
+    current = self.head
+
+    while current != None:
+        if current.data == x:
+            return True
+        current = current.Next
+    
+    return False
+```
+
+### 재귀로 풀기
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트에 특정 값이 존재하는지 검사하는 함수
+def searchByRecursion(self, current, x):
+    if not current:
+        return False
+    
+    if current.data == x:
+        return True
+
+    return self.searchByRecursion(current.next, x)
+```
+
+## 연결 리스트의 N번째 노드 가져오기
+```python
+# 연결 리스트 클래스 내부의 함수
+# 연결 리스트에서 주어진 인덱스 위치의 데이터를 반환하는 함수
+def getNth(self, index):
+    current = self.head
+    count = 0
+    
+    while current:
+        if count == index:
+            return current.data
+        count += 1
+        current = current.next
+
+    # 존재하지 않는 요소를 찾는 경우 assert fail..
+    assert(False)
+    return 0
+```
+
+
+
+
 ## Reference
 - https://www.geeksforgeeks.org/data-structures/linked-list/#singlyLinkedList
 - https://www.geeksforgeeks.org/linked-list-set-1-introduction/
 - https://www.geeksforgeeks.org/linked-list-set-2-inserting-a-node/
+- https://www.geeksforgeeks.org/linked-list-set-3-deleting-node/?ref=lbp
+- https://www.geeksforgeeks.org/delete-a-linked-list-node-at-a-given-position/?ref=lbp
+- https://www.geeksforgeeks.org/write-a-function-to-delete-a-linked-list/?ref=lbp
+- https://www.geeksforgeeks.org/find-length-of-a-linked-list-iterative-and-recursive/
+- https://www.geeksforgeeks.org/search-an-element-in-a-linked-list-iterative-and-recursive/
+- https://www.geeksforgeeks.org/write-a-function-to-get-nth-node-in-a-linked-list/

@@ -54,6 +54,126 @@ class LinkedList:
         # 마지막 노드 변경
         last.next = new_node
 
+    # 연결 리스트에서 key의 첫 번째 항목을 삭제하는 함수
+    def deleteNode(self, key):
+        # head 노드 임시 보관
+        temp = self.head
+
+        # head 노드 자체가 삭제할 key를 가지고 있다면
+        if temp is not None:
+            if temp.data == key:
+                self.head = temp.next
+                temp = None
+                return
+        
+        # 삭제할 key를 탐색한다.
+        # prev.next를 변경하기 위해 이전 노드를 찾는다.
+        while temp is not None:
+            if temp.data == key:
+                break
+            prev = temp
+            temp = temp.next
+        
+        # 연결 리스트에 key가 존재하지 않는다면
+        if temp == None:
+            return
+        
+        # 연결 리스트에서 노드 연결 해제
+        prev.next = temp.next
+
+        temp = None
+
+    # 리스트의 head로의 reference와 position이 주어졌을 때
+    # 주어진 position의 노드를 삭제하는 함수
+    def deleteNodeAt(self, position):
+        # 연결 리스트가 비어 있는 경우
+        if self.head == None:
+            return
+        
+        # head 노드 임시 보관
+        temp = self.head
+
+        # 삭제할 노드가 head인 경우
+        if position == 0:
+            self.head = temp.next
+            temp = None
+            return
+
+        # 삭제할 노드의 이전 노드 찾기
+        for i in range(position-1):
+            temp = temp.next
+            if temp is None:
+                break
+        
+        # position이 노드 개수보다 큰 경우
+        if temp is None:
+            return
+        if temp.next is None:
+            return
+        
+        # temp.next의 노드가 삭제할 노드인 경우
+        # 삭제할 노드의 next를 가리키는 포인터를 보관
+        next = temp.next.next
+
+        # 연결 리스트에서 노드 연결 해제
+        temp.next = next
+
+    # 연결 리스트 클래스 내부의 함수
+    # 연결 리스트를 순회하며 모든 노드를 삭제하는 함수
+    def deleteList(self):
+        current = self.head
+        while current:
+            next_node = current.next
+            del current.data
+            current = next
+
+    # 연결 리스트 클래스 내부의 함수
+    # 연결 리스트의 전체 노드 개수를 세는 함수
+    def getCount(self):
+        temp = self.head
+        count = 0
+
+        while temp:
+            count += 1
+            temp = temp.next
+        return count
+
+    # 연결 리스트에 특정 값이 존재하는지 검사하는 함수 (반복문 이용)
+    def searchByIteration(self, x):
+        current = self.head
+
+        while current != None:
+            if current.data == x:
+                return True
+            current = current.Next
+        
+        return False
+
+    # 연결 리스트에 특정 값이 존재하는지 검사하는 함수 (재귀 이용)
+    def searchByRecursion(self, current, x):
+        if not current:
+            return False
+        
+        if current.data == x:
+            return True
+
+        return self.searchByRecursion(current.next, x)
+
+    # 연결 리스트에서 주어진 인덱스 위치의 데이터를 반환하는 함수
+    def getNth(self, index):
+        current = self.head
+        count = 0
+        
+        while current:
+            if count == index:
+                return current.data
+            count += 1
+            current = current.next
+
+        # 존재하지 않는 요소를 찾는 경우 assert fail..
+        assert(False)
+        return 0
+
     # 연결 리스트의 내용을 Head부터 시작해서 출력하는 함수
     def printList(self):
         temp = self.head
@@ -68,6 +188,8 @@ if __name__ == "__main__":
     linked_list.push(7) # 7->6->None
     linked_list.push(1) # 1->7->6->None
     linked_list.append(4) # 1->7->6->4->None
-    linked_list.insertAfter(linked_list.head.next, 8) # 1->7->8->6->4->None
-
+    linked_list.deleteNode(6) # 1->7->4->None
+    linked_list.deleteNodeAt(1) # 1->4->None
+    linked_list.insertAfter(linked_list.head.next, 8) # 1->4->8->None
+    print("Element at index 2 is : ", linked_list.getNth(2))
     linked_list.printList()
