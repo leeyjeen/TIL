@@ -68,7 +68,55 @@ class DoublyLinkedList:
         new_node.next = next_node
         if new_node.prev is not None:
             new_node.prev.next = new_node
+
+    # 이중 연결 리스트에서 주어진 노드를 삭제하는 함수
+    def deleteNode(self, delete_node):
+        # 연결 리스트가 비어 있거나 삭제하려는 노드가 비어 있는 경우
+        if self.head is None or delete_node is None: 
+            return 
             
+        # 삭제하려는 노드가 head일 경우
+        if self.head == delete_node: 
+            self.head = delete_node.next
+
+        # 삭제할 노드가 마지막 노드가 아닌 경우에만 next를 변경
+        if delete_node.next is not None: 
+            delete_node.next.prev = delete_node.prev 
+        
+        # 삭제할 노드가 첫 번째 노드가 아닌 경우에만 prev을 변경
+        if delete_node.prev is not None: 
+            delete_node.prev.next = delete_node.next
+
+    # 이중 연결 리스트에서 주어진 위치의 노드를 삭제하는 함수
+    def deleteNodeAt(self, index): 
+        # 연결 리스트가 비어 있거나 유효하지 않은 위치 값이 주어진 경우
+        if self.head is None or index < 0: 
+            return
+    
+        current = self.head 
+        i = 0
+
+        # 처음부터 n번째 위치의 노드까지 순회
+        while current != None and i < index: 
+            i += 1
+            current = current.next
+    
+        # 이중 연결 리스트의 노드 수보다 index가 큰 경우
+        if current == None: 
+            return
+    
+        # current가 가리키는 노드 삭제
+        self.deleteNode(current) 
+
+    # 전체 노드 개수를 세는 함수
+    def getCount(self):
+        node = self.head
+        count = 0
+        while node:
+            count += 1
+            node = node.next
+        return count
+
     # 연결 리스트의 내용을 주어진 노드에서부터 출력하는 함수
     def printList(self, node):
         print("정방향 순회")
@@ -90,5 +138,7 @@ if __name__ == "__main__":
     dll.append(4)   # 1<=>7<=>6<=>4
     dll.insertAfter(dll.head.next, 8)   # 1<=>7<=>8<=>6<=>4
     dll.insertBefore(dll.head.next, 5)  # 1<=>5<=>7<=>8<=>6<=>4
+    dll.deleteNode(dll.head.next)       # 1<=>7<=>8<=>6<=>4
+    dll.deleteNodeAt(4)                 # 1<=>7<=>8<=>6
 
     dll.printList(dll.head)
