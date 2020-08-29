@@ -3,52 +3,83 @@ class Node:
     def __init__(self, data):
         self.data = data
         self.next = None
-        
+
 # 원형 연결 리스트 클래스
 class CircularLinkedList:
     def __init__(self):
-        self.head = None
-        
-    # 원형 연결 리스트의 맨 앞에 노드 삽입하는 함수
-    def push(self, data):
+        self.tail = None
+
+    # This function is only for empty list
+    def addToEmpty(self, data):
+        if self.tail != None:
+            return self.tail
         new_node = Node(data)
-        temp = self.head
+        self.tail = new_node
+
+        self.tail.next = self.tail
+        return self.tail
+
+    def addBegin(self, data):
+        if self.tail == None:
+            return self.addToEmpty(data)
+
+        new_node = Node(data)
+        new_node.next = self.tail.next
+        self.tail.next = new_node
+
+        return self.tail
+
+    def addEnd(self, data):
+        if self.tail == None:
+            return self.addToEmpty(data)
+
+        new_node = Node(data)
+        new_node.next = self.tail.next
+        self.tail.next = new_node
+        self.tail = new_node
+
+        return self.tail
+
+    def addAfter(self, data, item):
+        if self.tail == None:
+            return None
         
-        new_node.next = self.head
+        new_node = Node(data)
+        p = self.tail.next
+        while p:
+            if p.data == item:
+                new_node.next = p.next
+                p.next = new_node
+
+                if p == self.tail:
+                    self.tail = new_node
+                return self.tail
+            
+            p = p.next
+            if p == self.tail.next:
+                print(item, "이(가) 리스트에 존재하지 않습니다.")
+                break
+
+    def traverse(self):
+        if self.tail == None:
+            print("리스트가 비어 있습니다.")
+            return
         
-        # 연결 리스트가 비어 있지 않은 경우 마지막 노드의 next 설정
-        if self.head is not None:
-            while temp.next != self.head:
-                temp = temp.next
-            temp.next = new_node
-        else:
-            new_node.next = new_node    # 연결 리스트가 비어 있는 경우 첫 번째 노드 설정
-        
-        self.head = new_node
-        
-    # 원형 연결 리스트의 노드들을 출력하는 함수    
-    def printList(self):
-        temp = self.head
-        if temp is not None:
-            while True:
-                print("%d" % temp.data)
-                temp = temp.next
-                if temp == self.head:
-                    break
-                
+        node = self.tail.next
+        while node:
+            print(node.data, end=" ")
+            node = node.next
+            if node == self.tail.next:
+                break
+
 if __name__ == "__main__":
     cll = CircularLinkedList()
-    
-    cll.push(12)    # 12
-    cll.push(56)    # 56->12
-    cll.push(2)     # 2->56->12
-    cll.push(11)    # 11->2->56->12
-    
-    cll.printList()
-    
-# Output:
-# 11
-# 2
-# 56
-# 12
-    
+
+    tail = cll.addToEmpty(6)    # 6
+    tail = cll.addBegin(4)      # 4 6
+    tail = cll.addBegin(2)      # 2 4 6
+    tail = cll.addEnd(8)        # 2 4 6 8
+    tail = cll.addEnd(12)       # 2 4 6 8 12
+    tail = cll.addAfter(10, 8)  # 2 4 6 8 10 12
+
+    cll.traverse()

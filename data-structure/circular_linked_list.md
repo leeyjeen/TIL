@@ -85,9 +85,152 @@ Output:
 4) 노드 중간에 노드 추가하기
 
 ## 비어 있는 리스트에 노드 추가하기
-to be continued..
+1. 새 노드(T) 생성
+1. tail = T
+1. T.next = T
 
+## 리스트의 맨 앞에 노드 추가하기
+1. 새 노드(T) 생성
+1. T.next = tail.next
+1. tail.next = T
+
+## 리스트의 맨 끝에 노드 추가하기
+1. 새 노드(T) 생성
+1. T.next = tail.next
+1. tail.next  = T
+1. tail = T
+
+## 노드 중간에 노드 추가하기
+1. 새 노드(T) 생성
+1. 노드 T를 삽입할 이전 노드(P) 탐색 
+1. T.next = P.next
+1. P.next = T
+
+## 코드
+```python
+# 원형 연결 리스트의 노드 클래스
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+# 원형 연결 리스트 클래스
+class CircularLinkedList:
+    def __init__(self):
+        self.tail = None
+
+    # This function is only for empty list
+    def addToEmpty(self, data):
+        if self.tail != None:
+            return self.tail
+        new_node = Node(data)
+        self.tail = new_node
+
+        self.tail.next = self.tail
+        return self.tail
+
+    def addBegin(self, data):
+        if self.tail == None:
+            return self.addToEmpty(data)
+
+        new_node = Node(data)
+        new_node.next = self.tail.next
+        self.tail.next = new_node
+
+        return self.tail
+
+    def addEnd(self, data):
+        if self.tail == None:
+            return self.addToEmpty(data)
+
+        new_node = Node(data)
+        new_node.next = self.tail.next
+        self.tail.next = new_node
+        self.tail = new_node
+
+        return self.tail
+
+    def addAfter(self, data, item):
+        if self.tail == None:
+            return None
+        
+        new_node = Node(data)
+        p = self.tail.next
+        while p:
+            if p.data == item:
+                new_node.next = p.next
+                p.next = new_node
+
+                if p == self.tail:
+                    self.tail = new_node
+                return self.tail
+            
+            p = p.next
+            if p == self.tail.next:
+                print(item, "이(가) 리스트에 존재하지 않습니다.")
+                break
+
+    def traverse(self):
+        if self.tail == None:
+            print("리스트가 비어 있습니다.")
+            return
+        
+        node = self.tail.next
+        while node:
+            print(node.data, end=" ")
+            node = node.next
+            if node == self.tail.next:
+                break
+
+if __name__ == "__main__":
+    cll = CircularLinkedList()
+
+    tail = cll.addToEmpty(6)    # 6
+    tail = cll.addBegin(4)      # 4 6
+    tail = cll.addBegin(2)      # 2 4 6
+    tail = cll.addEnd(8)        # 2 4 6 8
+    tail = cll.addEnd(12)       # 2 4 6 8 12
+    tail = cll.addAfter(10, 8)  # 2 4 6 8 10 12
+
+    cll.traverse()        
+```
+Output:
+```bash
+2 4 6 8 10 12
+```
+
+## 노드 삭제하기
+```python
+def deleteNode(self, key):
+    if tail == None:
+        return
+
+    if tail.next.data == key and tail.next == tail:
+        tail = None
+
+    # 첫 번째 노드를 지워야 하는 경우
+    last_node = tail.next
+    if tail.next.data == key:
+        # 마지막 노드 찾기
+        while last_node.next != tail.next:
+            last_node = last_node.next
+        
+        last_node.next = tail.next.next
+        tail.next = last_node.next
+
+    while last_node.next != tail.next and last_node.next.data != key:
+        last_node = last_node.next
+
+    delete_node = None
+    if last_node.next.data == key:
+        delete_node = last_node.next
+        last_node.next = delete_node.next
+    else:
+        print("no such keyfound")
+    return tail.next
+```
 
 ## Referecnce
 - https://www.geeksforgeeks.org/circular-linked-list/
 - https://www.geeksforgeeks.org/circular-singly-linked-list-insertion/
+- https://www.geeksforgeeks.org/deletion-circular-linked-list/
