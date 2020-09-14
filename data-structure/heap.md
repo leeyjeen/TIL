@@ -46,7 +46,7 @@
 7. 하위 트리들이 heapify될 때까지 3-7 단계를 반복한다. 
 
 ## 최소 힙 구현
-힙의 요소를 배열로 매핑하는 작업은 간단하다. 노드가 인덱스 `k`에 저장되면 해당 노드의 왼쪽 자식 노드는 인덱스 `2k`+1에 저장되고 오른쪽 자식 노드는 인덱스 `2k+2`에 저장된다.
+힙의 요소를 배열로 매핑하는 작업은 간단하다. 노드가 인덱스 `k`에 저장되면 해당 노드의 왼쪽 자식 노드는 인덱스 `2k+1`에 저장되고 오른쪽 자식 노드는 인덱스 `2k+2`에 저장된다.
 
 ### 최소 힙의 표현
 `최소 힙`은 완전 이진 트리(Complete binary tree)이다. 최소 힙은 일반적으로 배열로 표현된다. 루트 요소는 arr[0]에 있을 것이다. 즉, i번째 노드는 arr[i]에 있을 것이다.
@@ -197,7 +197,153 @@ The heap elements :
 ```
 
 ## 최대 힙 구현
-To be continued...
+힙의 요소를 배열로 매핑하는 작업은 간단하다. 노드가 인덱스 `k`에 저장되면 해당 노드의 왼쪽 자식 노드는 인덱스 `2k+1`에 저장되고 오른쪽 자식 노드는 인덱스 `2k+2`에 저장된다.
+
+### 최대 힙의 표현
+`최대 힙`은 완전 이진 트리(Complete binary tree)이다. 최대 힙은 일반적으로 배열로 표현된다. 루트 요소는 arr[0]에 있을 것이다. 즉, i번째 노드는 arr[i]에 있을 것이다.
+
+- **arr[(i-1)/2]**: 부모 노드
+- **arr[(2*i)+1]**: 왼쪽 자식 노드
+- **arr[(2*i)+2]**: 오른쪽 자식 노드
+
+### 최대 힙의 연산
+- **getMax()**: 최대 힙의 루트를 반환한다. 시간 복잡도는 **O(1)**이다.
+- **extractMax()**: 최대 힙에서 최대 값 요소를 삭제한다. 루트 삭제 후 heapify()를 호출하며 힙 속성을 유지해야 하므로 시간 복잡도는 **O(logn)**이다. 
+- **insert()**: 새로운 키를 삽입하는 작업은 **O(logn)**의 시간 복잡도를 갖는다. 트리의 맨 끝에 키를 추가한다. 새로운 키가 부모보다 작은 경우는 아무 것도 할 필요가 없다. 그렇지 않은 경우, 훼손된 힙 속성을 고치기 위해 다각도로 순회하여야 한다.
+
+### 코드
+```python
+import sys
+
+class MaxHeap:
+    def __init__(self, maxsize):
+        self.maxsize = maxsize
+        self.size = 0
+        self.Heap = [0] * (self.maxsize + 1)
+        self.Heap[0] = sys.maxsize
+        self.FRONT = 1
+
+    def parent(self, pos):
+        return pos // 2
+
+    def leftChild(self, pos):
+        return 2 * pos
+
+    def rightChild(self, pos):
+        return (2 * pos) + 1
+
+    def isLeaf(self, pos):
+        if pos >= (self.size // 2) and pos <= self.size:
+            return True
+        return False
+
+    def swap(self, fpos, spos):
+        self.Heap[fpos], self.Heap[spos] = self.Heap[spos], self.Heap[fpos]
+
+    def maxHeapify(self, pos):
+        # 비잎사귀노드이고 자식 노드보다 작은 경우
+        if (not self.isLeaf(pos) and 
+            (self.Heap[pos] < self.Heap[self.leftChild(pos)] or 
+            self.Heap[pos] < self.Heap[self.rightChild(pos)])):
+            # 왼쪽 자식 노드와 교환한 후 왼쪽 자식 노드를 heapify한다
+            if self.Heap[self.leftChild(pos)] > self.Heap[self.rightChild(pos)]:
+                self.swap(pos, self.leftChild(pos))
+                self.maxHeapify(self.leftChild(pos))
+            # 오른쪽 자식 노드와 교환한 후 오른쪽 자식 노드를 heapify한다
+            else: 
+                self.swap(pos, self.rightChild(pos))
+                self.maxHeapify(self.rightChild(pos))
+
+    def insert(self, element):
+        if self.size >= self.maxsize:
+            return
+        self.size += 1
+        self.Heap[self.size] = element
+
+        current = self.size
+
+        while self.Heap[current] > self.Heap[self.parent(current)]:
+            self.swap(current, self.parent(current))
+            current = self.parent(current)
+            
+    def Print(self):
+        for i in range(1, (self.size // 2) + 1):
+            print("Parent : " + str(self.Heap[i]) + " Left child : " + str(self.Heap[2 * i]) + "Right child : " + str(self.Heap[2 * i + 1]))
+
+    def extractMax(self):
+        popped = self.Heap[self.FRONT]
+        self.Heap[self.FRONT] = self.Heap[self.size]
+        self.Heap[self.FRONT] = self.Heap[self.size]
+        self.size -= 1
+        self.maxHeapify(self.FRONT)
+        return popped
+
+if __name__ == "__main__":
+    maxHeap = MaxHeap(15) 
+    maxHeap.insert(5) 
+    maxHeap.insert(3) 
+    maxHeap.insert(17) 
+    maxHeap.insert(10) 
+    maxHeap.insert(84) 
+    maxHeap.insert(19) 
+    maxHeap.insert(6) 
+    maxHeap.insert(22) 
+    maxHeap.insert(9) 
+  
+    maxHeap.Print() 
+      
+    print("The Max val is " + str(maxHeap.extractMax()))
+```
+Output:
+```bash
+Parent : 84 Left child : 22Right child : 19
+Parent : 22 Left child : 17Right child : 10
+Parent : 19 Left child : 5Right child : 6
+Parent : 17 Left child : 3Right child : 9
+The Max val is 84
+```
+
+### 라이브러리 함수 이용하기
+Python의 `heapq` 클래스를 이용하여 힙을 구현할 수 있다. 
+
+```python
+from heapq import heappop, heappush, heapify
+
+# 빈 heap 생성
+heap = []
+heapify(heap)
+
+# heappush 함수 이용하여 항목 추가
+heappush(heap, -1*10)
+heappush(heap, -1*30)
+heappush(heap, -1*20)
+heappush(heap, -1*400)
+
+# 최대 요소 값 출력
+print("Head value of heap : " + str(-1*heap[0]))
+
+# 힙의 요소 출력
+print("The heap elements : ")
+for i in heap:
+    print(-1*i, end=' ')
+print("\n")
+
+element = heappop(heap)
+
+# 힙의 요소 출력
+print("The heap elements : ")
+for i in heap:
+    print(-1*i, end=' ')
+```
+Output:
+```bash
+Head value of heap : 400
+The heap elements : 
+400 30 20 10 
+
+The heap elements : 
+30 10 20
+```
 
 ## 힙 자료 구조의 활용
 - 우선순위 큐 구현
@@ -207,3 +353,4 @@ To be continued...
 ## Reference
 - https://www.programiz.com/dsa/heap-data-structure
 - https://www.geeksforgeeks.org/min-heap-in-python/
+- https://www.geeksforgeeks.org/max-heap-in-python/?ref=rp
