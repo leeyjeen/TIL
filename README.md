@@ -6,6 +6,7 @@
 * 정렬
     * [버블 정렬](https://github.com/leeyjeen/TIL/blob/master/algorithm/bubble_sort.md)
     * [선택 정렬](https://github.com/leeyjeen/TIL/blob/master/algorithm/selection_sort.md) 
+    * [삽입 정렬](https://github.com/leeyjeen/TIL/blob/master/algorithm/insertion_sort.md)
 
 
 ## Data Structure
