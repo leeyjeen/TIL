@@ -148,7 +148,81 @@ router.get('/:resource', (req, res) => {
 ```
 
 ## Mongo DB Connection
-To be continued..
+```bash
+$ mongo --version
+$ mkdir seed
+$ cd seed
+$ touch teams.json
+$ touch players.json
+```
+`teams.json`
+```json
+{"name":"giants", "city":"new york", "conference":"nfc"}
+{"name":"patriots", "city":"new england", "conference":"afc"}
+{"name":"texans", "city":"houston", "conference":"afc"}
+```
+`players.json`
+```json
+{"firstName":"eli", "lastName":"manning", "position":"qb", "age":37, "team":"nyg"}
+{"firstName":"tom", "lastName":"brady", "position":"qb", "age":41, "team":"nep"}
+{"firstName":"jj", "lastName":"watt", "position":"de", "age":28, "team":"hou"}
+```
+
+```bash
+# run mongodb
+$ mongod --dbpath=/Users/yjlee/data/db
+...
+{"t":{"$date":"2020-10-01T13:00:28.001+09:00"},"s":"I",  "c":"NETWORK",  "id":23016,   "ctx":"listener","msg":"Waiting for connections","attr":{"port":27017,"ssl":"off"}}
+
+# save db from file
+$ mongoimport --db footballdb --collection players --file players.json
+2020-10-01T13:02:54.425+0900	connected to: mongodb://localhost/
+2020-10-01T13:02:54.469+0900	3 document(s) imported successfully. 0 document(s) failed to import.
+
+$ mongoimport --db footballdb --collection teams --file teams.json
+2020-10-01T13:03:27.205+0900	connected to: mongodb://localhost/
+2020-10-01T13:03:27.242+0900	3 document(s) imported successfully. 0 document(s) failed to import.
+
+# connect to foolball db
+$ mongo footballdb
+> show collections
+players
+teams
+> db.players.find()
+{ "_id" : ObjectId("5f7554ee186b42a67aaadcc5"), "firstName" : "eli", "lastName" : "manning", "position" : "qb", "age" : 37, "team" : "nyg" }
+{ "_id" : ObjectId("5f7554ee186b42a67aaadcc6"), "firstName" : "jj", "lastName" : "watt", "position" : "de", "age" : 28, "team" : "hou" }
+{ "_id" : ObjectId("5f7554ee186b42a67aaadcc7"), "firstName" : "tom", "lastName" : "brady", "position" : "qb", "age" : 41, "team" : "nep" }
+> db.teams.find()
+{ "_id" : ObjectId("5f75550f16a9ebc92863a067"), "name" : "giants", "city" : "new york", "conference" : "nfc" }
+{ "_id" : ObjectId("5f75550f16a9ebc92863a068"), "name" : "patriots", "city" : "new england", "conference" : "afc" }
+{ "_id" : ObjectId("5f75550f16a9ebc92863a069"), "name" : "texans", "city" : "houston", "conference" : "afc" }
+
+```
+
+`app.js`
+```js
+const config = {
+  views: 'views', // Set views directory
+  static: 'public', // Set static assets directory
+  logging: true,
+  db: {
+    url: 'mongodb://localhost:27017/footballdb',
+    type: 'mongo',
+    onError: (err) => {
+      console.log('DB Connection Failed!')
+    },
+    onSuccess: () => {
+      console.log('FOOTBALL DB CONNECTED!')
+    }
+  }
+}
+```
+
+
+
+
+
+
 
 ## Reference
 * https://www.udemy.com/course/create-a-rest-api-with-node-js-and-mongo-db/
