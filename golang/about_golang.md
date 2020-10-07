@@ -157,9 +157,121 @@ ch := make(chan int, 100)
 이는 버퍼가 가득 찬 경우에만 버퍼 채널 블록으로 전송한다. 버퍼가 비어 있을 때 블록을 수신한다.
 
 ## Range and Close
-To be continued..
+A sender can close a channel to indicate that no more values will be sent. Receivers can test whether a channel has been closed by assigning a second parameter to the receive expression: after
 
+송신자는 더 이상 값이 전송되지 않음을 나타내기 위해 채널을 닫을 수 있다. 수신자는 수신 표현식에 두 번째 매개변수를 할당하여 채널이 닫혔는지 여부를 테스트할 수 있다.:
+```go
+v, ok := <-ch
+```
+더 이상 수신할 값이 없고 채널이 닫히면 `ok`는 `false`이다.
 
+반복문 `for i := range c`은 채널이 닫힐 때까지 채널로부터 값을 반복적으로 수신한다. 
+
+Note: 송신자만 채널을 닫아야 한다. 닫힌 채널로 전송시 패닉이 발생한다.
+
+Another Note: 채널은 파일과 같지 않다. 일반적으로 채널을 닫을 필요가 없다. 닫기는 range 반복문을 종료하는 것과 같이 수신자가 더 이상 값이 오지 않는 다는 것을 알아야 할 때 필요하다.
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func fibonacci(n int, c chan int) {
+	x, y := 0, 1
+	for i := 0; i < n; i++ {
+		c <- x
+		x, y = y, x+y
+	}
+	close(c)
+}
+
+func main() {
+	c := make(chan int, 10)
+	go fibonacci(cap(c), c)
+	for i := range c {
+		fmt.Println(i)
+	}
+}
+```
+Output:
+```bash
+0
+1
+1
+2
+3
+5
+8
+13
+21
+34
+```
+
+## Select
+`select`문을 통해 고루틴은 여러 통신 작업을 대기할 수 있다.
+
+`select`는 cases 중 하나가 실행할 수 있을 때까지 블록된 다음 case를 실행한다. 여러 개가 가능한 경우 임의로 하나를 선택한다.
+
+```go
+package main
+
+import "fmt"
+
+func fibonacci(c, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case c <- x:
+			x, y = y, x+y
+		case <-quit:
+			fmt.Println("quit")
+			return
+		}
+	}
+}
+
+func main() {
+	c := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i < 10; i++ {
+			fmt.Println(<-c)
+		}
+		quit <- 0
+	}()
+	fibonacci(c, quit)
+}
+```
+Output:
+```bash
+0
+1
+1
+2
+3
+5
+8
+13
+21
+34
+quit
+```
+
+## Default Selection
+`select`의 `default` case는 다른 case가 준비되지 않은 경우 실행된다.
+
+`default` case를 사용하여 blocking 없이 송수신을 시도할 수 있다.:
+
+```go
+select {
+case i := <-c:
+    // use i
+default:
+    // receiving from c would block
+}
+```
 
 
 
