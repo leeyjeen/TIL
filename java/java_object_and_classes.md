@@ -173,8 +173,97 @@ Variable Value : 2
 간단히 말해서 package는 클래스와 인터페이스를 분류하는 방법이다. Java로 애플리케이션 개발시 수백 개의 클래스와 인터페이스가 작성되므로, 이러한 클래스를 분류하는 것은 필수이다.
 
 ## Import Statements
-To be continued..
+Java에서 패키지 및 클래스 이름을 포함하는 완전한 이름이 제공되면 컴파일러는 소스코드 또는 클래스를 쉽게 찾을 수 있다. Import문은 컴파일러가 특정 클래스를 찾을 수 있는 적절한 위치를 제공하는 방법이다.
 
+예를 들어 다음 라인은 컴파일러가 java_installation/java/io - 디렉터리의 모든 이용 가능한 클래스를 로드하도록 요청한다.
+
+```java
+import java.io.*;
+```
+
+## A Simple Case Study
+`Employee`, `EmployeeTest` 두 개의 클래스를 생성해보자.
+
+Employee.java
+```java
+import java.io.*;
+public class Employee {
+    String name;
+    int age;
+    String designation;
+    double salary;
+
+    // This is the constructor of the class Employee
+    public Employee(String name) {
+        this.name = name;
+    }
+
+    // Assign the age of the Employee to the variable age.
+    public void empAge(int empAge) {
+        age = empAge;
+    }
+
+    // Assign the designation to the variable designation.
+    public void empDesignation(String empDesig) {
+        designation = empDesig;
+    }
+
+    // Assign the salary to the variable salary.
+    public void empSalary(double empSalary) {
+        salary = empSalary;
+    }
+
+    public void printEmployee() {
+        System.out.println("Name:"+ name );
+        System.out.println("Age:" + age );
+        System.out.println("Designation:" + designation );
+        System.out.println("Salary:" + salary);
+    }
+}
+```
+
+앞서 언급했듯이 프로세스는 main 메서드로부터 시작된다. 따라서 이 `Employee` 클래스를 실행하려면 main 메서드가 있어야 하고 객체가 생성되어야 한다. 이러한 작업에 대해 별도의 클래스를 생성할 것이다.
+
+다음은 `Employee` 클래스의 두 인스턴스를 만들고 각 객체에 대한 메서드를 호출하여 각 변수에 값을 할당하는 `EmployeeTest` 클래스이다.
+
+EmployeeTest.java
+```java
+import java.io.*;
+public class EmployeeTest {
+    public static void main(String args[]) {
+        // Create two objects using constructor
+        Employee empOne = new Employee("Claudia");
+        Employee empTwo = new Employee("Jimmy");
+
+        // Invoking methods for each object created
+        empOne.empAge(26);
+        empOne.empDesignation("Actress");
+        empOne.empSalary(1000);
+        empOne.printEmployee();
+
+        empTwo.empAge(30);
+        empTwo.empDesignation("Actor");
+        empTwo.empSalary(800);
+        empTwo.printEmployee();
+    }
+}
+```
+두 클래스를 컴파일하고 `EmployeeTest`를 실행하자.
+
+Output:
+```bash
+$ javac Employee.java
+$ javac EmployeeTest.java
+$ java EmployeeTest
+Name:Claudia
+Age:26
+Designation:Actress
+Salary:1000.0
+Name:Jimmy
+Age:30
+Designation:Actor
+Salary:800.0
+```
 
 ## Reference
 * https://www.tutorialspoint.com/java/java_object_classes.htm
