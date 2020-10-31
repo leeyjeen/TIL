@@ -31,9 +31,9 @@ Xserver | 6000 | TCP X windows (N.B. > 1023).
 
 ## Port and Service Functions
 Unix는 /etc/services 파일에서 서비스 이름을 가져오는 다음과 같은 function을 제공한다.
-* **struct servent *getservbyname(char *name, char *proto)**
+* struct servent *getservbyname(char *name, char *proto)
     * 이 호출은 서비스 이름과 프로토콜 이름을 가지고 해당 서비스에 해당하는 포트 번호를 반환한다.
-* **struct servent *getservbyport(int port, char *proto)**
+* struct servent *getservbyport(int port, char *proto)
     * 이 호출은 포트 번호와 프로토콜 이름을 가지고 해당 서비스 이름을 반환한다.
 
 ```
