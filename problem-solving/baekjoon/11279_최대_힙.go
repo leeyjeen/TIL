@@ -23,9 +23,9 @@ func main() {
 		fmt.Fscanln(reader, &x)
 
 		if x == 0 {
-			fmt.Fprintln(writer, deleteHeap(&heap))
+			fmt.Fprintln(writer, heap.deleteHeap())
 		} else {
-			insertHeap(&heap, x)
+			heap.insertHeap(x)
 		}
 	}
 }
@@ -38,21 +38,21 @@ type Heap struct {
 // deleteHeap: 힙에서 데이터 삭제.
 // 힙의 마지막 노드를 루트 노드의 위치에 올린 다음,
 // 자식 노드와의 비교과정을 거치면서 자신의 위치를 찾을 때까지 내린다.
-func deleteHeap(heap *Heap) (delVal uint) {
+func (heap *Heap) deleteHeap() (delVal uint) {
 	if heap.numOfData == 0 {
 		return
 	}
 	delVal = heap.heapArr[1]
 	lastVal := heap.heapArr[heap.numOfData]
 	var parentIdx int = 1 // 마지막 노드가 저장될 인덱스
-	var childIdx int = getPriorityChildIdx(heap, parentIdx)
+	var childIdx int = heap.getPriorityChildIdx(parentIdx)
 	for childIdx != -1 { // 자식 노드가 존재하는 동안 반복
 		if lastVal > heap.heapArr[childIdx] { // 마지막 노드가 우선순위가 높은 경우 반복문 탈출
 			break
 		}
 		heap.heapArr[parentIdx] = heap.heapArr[childIdx]
 		parentIdx = childIdx
-		childIdx = getPriorityChildIdx(heap, parentIdx)
+		childIdx = heap.getPriorityChildIdx(parentIdx)
 	}
 	heap.heapArr[parentIdx] = lastVal
 	heap.numOfData--
@@ -62,7 +62,7 @@ func deleteHeap(heap *Heap) (delVal uint) {
 // getPriorityChildIdx:
 // 자식 노드 중 우선순위가 높은 자식의 인덱스 반환.
 // 자식 노드가 존재하지 않는 경우 -1을 반환한다.
-func getPriorityChildIdx(heap *Heap, parentIdx int) int {
+func (heap *Heap) getPriorityChildIdx(parentIdx int) int {
 	if parentIdx*2 > heap.numOfData {
 		return -1
 	} else if parentIdx*2 == heap.numOfData {
@@ -77,7 +77,7 @@ func getPriorityChildIdx(heap *Heap, parentIdx int) int {
 
 // insertHeap: 힙에 데이터 저장.
 // 마지막 노드에서부터 부모 노드와 우선순위 비교과정을 거쳐 자신의 위치를 찾는다.
-func insertHeap(heap *Heap, x uint) {
+func (heap *Heap) insertHeap(x uint) {
 	heap.numOfData++
 	var idx = heap.numOfData // 새 요소가 저장될 인덱스 값을 idx에 저장
 
