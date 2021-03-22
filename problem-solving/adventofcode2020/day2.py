@@ -8,10 +8,15 @@ def solve_first():
         times, letter, password = input.split()
         lowest_time, highest_time = list(map(int, times.split("-")))
         letter = letter[0]
-        count = password.count(letter)
-        if count >= lowest_time and count <= highest_time:
+        if check_if_password_has_valid_letter_count(password, letter, lowest_time, highest_time):
             valid_count += 1
     return valid_count
+
+def check_if_password_has_valid_letter_count(password, letter, lowest_time, highest_time):
+    count = password.count(letter)
+    if count >= lowest_time and count <= highest_time:
+        return True
+    return False
 
 def solve_second():
     valid_count = 0
@@ -19,11 +24,16 @@ def solve_second():
         position, letter, password = input.split()
         first_position, second_position = list(map(int, position.split("-")))
         letter = letter[0]
-        first_contains = password[first_position-1] == letter
-        second_contains = password[second_position-1] == letter
-        if first_contains and not second_contains or not first_contains and second_contains:
+        if check_if_password_has_one_right_letter_position(password, letter, first_position, second_position):
             valid_count += 1
     return valid_count
+
+def check_if_password_has_one_right_letter_position(password, letter, first_position, second_position):
+    first_contains = password[first_position-1] == letter
+    second_contains = password[second_position-1] == letter
+    if first_contains and not second_contains or not first_contains and second_contains:
+        return True
+    return False
 
 if __name__ == "__main__":
     print(solve_first())
