@@ -22,7 +22,7 @@ vector<string> readInput(string filepath) {
     return inputList;
 }
 
-int getTreeCount(int rightInterval, int downInterval, vector<string> inputList) {
+int getTreeCount(int rightInterval, int downInterval, const vector<string>& inputList) {
     int row = 0;
     int col = 0;
     int treeCount = 0;
@@ -36,11 +36,11 @@ int getTreeCount(int rightInterval, int downInterval, vector<string> inputList) 
     return treeCount;
 }
 
-int solveFirst(vector<string> inputList) {
+int solveFirst(const vector<string>& inputList) {
     return getTreeCount(3, 1, inputList);
 }
 
-int solveSecond(vector<string> inputList) {
+int solveSecond(const vector<string>& inputList) {
     return getTreeCount(1, 1, inputList)*getTreeCount(3, 1, inputList)*getTreeCount(5, 1, inputList)*getTreeCount(7, 1, inputList)*getTreeCount(1, 2, inputList);
 }
 

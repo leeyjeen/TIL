@@ -44,7 +44,7 @@ vector<Policy> readInput(string filepath) {
     return inputList;
 }
 
-int solveFirst(vector<Policy> inputList) {
+int solveFirst(vector<Policy>& inputList) {
     int validCount = 0;
     for (int i=0; i<inputList.size(); i++) {
         if (inputList[i].hasValidLetterCount()) {
@@ -54,7 +54,7 @@ int solveFirst(vector<Policy> inputList) {
     return validCount;
 }
 
-int solveSecond(vector<Policy> inputList) {
+int solveSecond(vector<Policy>& inputList) {
     int validCount = 0;
     for (int i=0; i<inputList.size(); i++) {
         if (inputList[i].hasOneRightLetterPosition()) {

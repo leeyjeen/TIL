@@ -19,7 +19,7 @@ vector<int> readInput(string filepath) {
     return inputList;
 }
 
-int solveFirst(vector<int> numbers) {
+int solveFirst(const vector<int>& numbers) {
     for (int i=0; i<numbers.size(); i++) {
         for (int j=i+1; j<numbers.size(); j++) {
             if (numbers[i] + numbers[j] == 2020) {
@@ -30,7 +30,7 @@ int solveFirst(vector<int> numbers) {
     return 0;
 }
 
-int solveSecond(vector<int> numbers) {
+int solveSecond(const vector<int>& numbers) {
     for (int i=0; i<numbers.size(); i++) {
         for (int j=i+1; j<numbers.size(); j++) {
             for (int k=j+1; k<numbers.size(); k++) {
