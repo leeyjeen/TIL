@@ -147,8 +147,27 @@ SSL/TLS는 데이터 암호화 및 데이터 무결성을 위해 **공개키 및
 
 ## Why use Commercial Certificates?
 
+무료 소프트웨어 도구를 사용하여 사용자 고유의 SSL 인증서 및 암호화 키를 쉽게 생성할 수 있다.
+
+이러한 키와 인증서는 상업용 키만큼 안전하며 대부분의 경우 훨씬 더 안전하다고 간주할 수 있다.
+
+> 상업용 인증서는 인증서에 대한 광범위한 지원이 필요한 경우에 필요하다.
+
+주요 상용 인증기관에 대한 지원이 대부분의 웹 브라우저, 운영체제에 내장되어 있기 때문이다.
+
 ## Certificate Encodings and Files Extensions
 
+인증서는 다음과 같이 인코딩할 수 있다.
+- Binary files
+- ASCII (base64)files
+
+일반적으로 사용되는 파일 확장명은 다음과 같다.
+- .DER
+- .PEM (Privacy Enhanced Electron Mail)
+- .CRT
+- .CERT
+
+참고: 파일 확장자와 인코딩 사이에는 실제적인 상관 관계가 없다. 즉 `.crt` 파일은 `.der` 인코딩 파일 또는 `.pem` 인코딩 파일일 수도 있다.
 
 ## Reference
 - http://www.steves-internet-guide.com/ssl-certificates-explained/
