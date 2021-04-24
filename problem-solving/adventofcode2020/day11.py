@@ -5,15 +5,14 @@ with open('./day11.txt', 'r') as f:
 
 def get_adjacent_seats_count(seats, row, col):
     count = 0
-    for i in [-1, 0, 1]:
-        if row+i < 0 or row+i >= len(seats):
-            continue
-        for j in [-1, 0, 1]:
-            if i == 0 and j == 0:
-                continue
-            if col+j < 0 or col+j >= len(seats[i]):
-                continue
-            seat = seats[row+i][col+j]
+    eight_directions = [(-1, -1), (-1, 0), (0, -1), (1, 1),
+                        (1, 0), (0, 1), (-1, 1), (1, -1)]
+    for d in eight_directions:
+        diff_row, diff_col = d[0], d[1]
+        r = row+diff_row
+        c = col+diff_col
+        if r >= 0 and r < len(seats) and c >= 0 and c < len(seats[0]):
+            seat = seats[r][c]
             if seat == '#':
                 count += 1
     return count
