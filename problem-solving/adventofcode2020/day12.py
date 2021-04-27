@@ -30,5 +30,39 @@ def solve_part1(input_list):
     return abs(horizontal_value) + abs(vertical_value)
 
 
+def solve_part2(input_list):
+    waypoint = [10, 1]
+    ship_pos = [0, 0]
+    for i in input_list:
+        action = i[0]
+        if action == "F":
+            ship_pos = [ship_pos[0]+waypoint[0] *
+                        i[1], ship_pos[1]+waypoint[1]*i[1]]
+        elif action == "L":
+            if i[1] == 90:
+                waypoint = [-waypoint[1], waypoint[0]]
+            elif i[1] == 180:
+                waypoint = [-waypoint[0], -waypoint[1]]
+            elif i[1] == 270:
+                waypoint = [waypoint[1], -waypoint[0]]
+        elif action == "R":
+            if i[1] == 90:
+                waypoint = [waypoint[1], -waypoint[0]]
+            elif i[1] == 180:
+                waypoint = [-waypoint[0], -waypoint[1]]
+            elif i[1] == 270:
+                waypoint = [-waypoint[1], waypoint[0]]
+        elif action == "N":
+            waypoint[1] += i[1]
+        elif action == "S":
+            waypoint[1] -= i[1]
+        elif action == "E":
+            waypoint[0] += i[1]
+        elif action == "W":
+            waypoint[0] -= i[1]
+    return abs(ship_pos[0]) + abs(ship_pos[1])
+
+
 if __name__ == "__main__":
     print(solve_part1(input_list))
+    print(solve_part2(input_list))
