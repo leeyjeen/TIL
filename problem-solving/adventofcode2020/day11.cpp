@@ -161,14 +161,9 @@ int main()
 {
     vector<vector<char> > seats = readInput("./day11.txt");
 
-    eightDirections.push_back(make_pair(-1, -1));
-    eightDirections.push_back(make_pair(-1, 0));
-    eightDirections.push_back(make_pair(0, -1));
-    eightDirections.push_back(make_pair(1, 1));
-    eightDirections.push_back(make_pair(1, 0));
-    eightDirections.push_back(make_pair(0, 1));
-    eightDirections.push_back(make_pair(-1, 1));
-    eightDirections.push_back(make_pair(1, -1));
+    eightDirections = {make_pair(-1, -1), make_pair(-1, 0),
+                       make_pair(0, -1), make_pair(1, 1), make_pair(1, 0),
+                       make_pair(0, 1), make_pair(-1, 1), make_pair(1, -1)};
 
     cout << solve(PART_ONE, seats) << endl;
     cout << solve(PART_TWO, seats) << endl;
