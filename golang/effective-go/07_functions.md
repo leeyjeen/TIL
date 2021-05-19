@@ -37,4 +37,27 @@ for i := 0; i < len(b); {
 
 ## Named result parameters
 
+Go언어의 함수는 반환 또는 결과 파라미터에 이름을 부여하고 인풋 파라미터처럼 일반 변수로 사용할 수 있다. 이름을 부여하면, 함수가 시작될 때 해당 형식에 해당하는 zero값으로 초기화된다. 인자 없이 return 구문을 수행할 때는 결과 파라미터의 현재 값이 반환 값으로 사용된다.
+
+이름을 부여하는 것이 필수적이지는 않지만 코드를 짧고 간결하게 만들어주며, 문서화가 된다. `nextInt`의 결과에 이름을 부여한다면, 반환되는 int값이 어떤 int값인지 명확해진다.
+
+```go
+func nextInt(b []byte, pos int) (value, nextPos int) {
+```
+
+이름을 부여한 결과값은 초기화되고 아무 내용 없이 반환되기 때문에, 명확하고 단순해진다. 이를 잘 사용하는 버전의 `io.ReadFull`을 살펴 보자.
+
+```go
+func ReadFull(r Reader, buf []byte) (n int, err error) {
+    for len(buf) > 0 && err == nil {
+        var nr int
+        nr, err = r.Read(buf)
+        n += nr
+        buf = buf[nr:]
+    }
+    return
+}
+```
+
 ## Defer
+
