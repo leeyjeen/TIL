@@ -188,7 +188,114 @@ func Append(slice, data []byte) []byte {
 
 ## Two-dimensional slices
 
+Go의 배열과 슬라이스는 1차원이다. 2차원 배열이나 슬라이스와 동일한 것을 만들기 위해서는, 다음과 같이 배열의 배열 또는 슬라이스의 슬라이스를 정의하여야 한다.
+
+```go
+type Transform [3][3]float64  // A 3x3 array, really an array of arrays.
+type LinesOfText [][]byte     // A slice of byte slices.
+```
+
+슬라이스는 크기가 변할 수 있기 때문에, 각 내부 슬라이스가 다른 길이를 가질 수 있다. `LinesOfText` 예시에서처럼 일반적인 상황이다. 각 라인은 독립적인 길이를 갖는다.
+
+```go
+text := LinesOfText{
+	[]byte("Now is the time"),
+	[]byte("for all good gophers"),
+	[]byte("to bring some fun to the party."),
+}
+```
+
+때때로 2차원 슬라이스를 할당해야하는 경우가 발생한다. 예를 들어, 픽셀 라인을 스캔하는 상황이다. 이 경우 두 가지 방법이 있다. 첫 번째는 각 슬라이스를 독립적으로 할당하는 것이다. 두 번째는 단일 배열을 할당하고 개별 슬라이스를 가리키게 하는 것이다. 슬라이스가 커지거나 작아질 수 있다면, 다음 라인을 덮어쓰는 것을 피하기 위하여 슬라이스는 독립적으로 할당되어야 한다. 그렇지 않다면, 한 번의 할당으로 객체를 생성하는 것이 더 효율적일 것이다. 참고로, 다음은 두 가지 방법에 대한 스케치이다. 첫 번째로, 한 번에 한 줄씩:
+
+```go
+// Allocate the top-level slice.
+picture := make([][]uint8, YSize) // One row per unit of y.
+// Loop over the rows, allocating the slice for each row.
+for i := range picture {
+	picture[i] = make([]uint8, XSize)
+}
+```
+
+그리고 한 번의 메모리 할당으로, 라인으로 슬라이스하는 경우:
+
+```go
+// Allocate the top-level slice, the same as before.
+picture := make([][]uint8, YSize) // One row per unit of y.
+// Allocate one large slice to hold all the pixels.
+pixels := make([]uint8, XSize*YSize) // Has type []uint8 even though picture is [][]uint8.
+// Loop over the rows, slicing each row from the front of the remaining pixels slice.
+for i := range picture {
+	picture[i], pixels = pixels[:XSize], pixels[XSize:]
+}
+```
+
 ## Maps
+
+맵은 편리하고 강력한 내장 데이터 구조로서 하나의 타입(key)의 값들을 다른 타입(element 또는 value)의 값들에 연결해준다. key는 동등 연산자가 정의되는 어떤 타입이어도 가능하다. (예: integers, floating point, complex numbers, strings, pointers, interfaces, structs, arrays) 슬라이스는 맵의 key로서 사용될 수 없다. 슬라이스에 대해서는 동등이 정의되지 않기 때문이다. 슬라이스와 같이, 맵은 내부 데이터 구조에 참조를 쥐고 있다. 맵의 내용을 변경하는 함수에 맵을 전달한다면, 해당 변경은 호출자에게도 보인다.
+
+맵은 콜론으로 구분된 key-value 쌍의 일반적인 합성 리터럴 문법을 사용하여 생성될 수 있으므로, 초기화와 동시에 생성하는 것이 쉽다.
+
+```go
+var timeZone = map[string]int{
+    "UTC":  0*60*60,
+    "EST": -5*60*60,
+    "CST": -6*60*60,
+    "MST": -7*60*60,
+    "PST": -8*60*60,
+}
+```
+
+맵에 값을 할당하고 읽어오는 것은 인덱스가 정수일 필요가 없다는 것을 제외하고는 문법적으로 배열, 슬라이스와 거의 동일하다.
+
+```go
+offset := timeZone["EST"]
+```
+
+맵에 존재하지 않는 key로 value를 추출하려고 한다면 맵의 엔트리 타입에 해당하는 zero값을 반환한다. 예를 들어 맵이 정수를 포함한다면, 존재하지 않는 key를 조회할 때 0을 반환한다. value 타입을 `bool`로 맵을 사용함으로써 집합을 구현할 수 있다. 집합에 값을 넣기 위하여 맵 엔트리를 `true`로 설정하고, 간단한 인덱싱을 통해 테스트해보자.
+
+```go
+attended := map[string]bool{
+    "Ann": true,
+    "Joe": true,
+    ...
+}
+
+if attended[person] { // will be false if person is not in the map
+    fmt.Println(person, "was at the meeting")
+}
+```
+
+때때로 zero값과 존재하지 않는 값을 구별해야 할 수 있다. "UTC"에 대한 엔트리 값인지, 맵에 존재하지 않기 때문에 0인지? 복수 할당의 형태로 구별할 수 있다.
+
+```go
+var seconds int
+var ok bool
+seconds, ok = timeZone[tz]
+```
+
+명백한 이유로 이는 "comma ok" 관용구라고 부른다. 이 예시에서, `tz`가 존재한다면, `seconds`는 적절히 설정되고 `ok`는 `true`가 될 것이다. 존재하지 않는다면, `seconds`는 zero로 설정되고 `ok`는 `false`가 될 것이다. 다음은 좋은 에러 보고와 함께 comma ok 관용구를 사용한 함수의 예시이다.
+
+```go
+func offset(tz string) int {
+    if seconds, ok := timeZone[tz]; ok {
+        return seconds
+    }
+    log.Println("unknown time zone:", tz)
+    return 0
+}
+```
+
+실제 값에 상관없이 맵에 존재 여부를 테스트하기 위해서, blank 식별자 (_)을 값의 변수 위치에 사용할 수 있다.
+
+```go
+_, present := timeZone[tz]
+```
+
+맵 엔트리를 삭제하기 위해, `delete` 내장 함수를 사용해보자. 매개변수는 맵과 지우려는 key이다. key가 맵에서 이미 존재하지 않는 경우에도 안전하게 사용할 수 있다.
+
+```go
+delete(timeZone, "PDT")  // Now on Standard Time
+```
 
 ## Printing
 
