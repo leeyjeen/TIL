@@ -299,5 +299,174 @@ delete(timeZone, "PDT")  // Now on Standard Time
 
 ## Printing
 
+Go에서 포맷된 출력은 C의 `printf`와 유사하지만 더 풍부하고 일반적이다. 함수들은 `fmt` 패키지에 있으며, 대문자 이름을 갖는다. `fmt.Printf`, `fmt.Fprintf`, `fmt.Sprintf` 등등. 문자열 함수(`Sprintf` 등)는 제공된 버퍼를 채우기 보다는 문자열을 반환한다.
+
+반드시 형식 문자열을 제공할 필요는 없다. `Printf`, `Fprintf`, `Sprintf` 각각에 대해 짝을 이루는 다른 함수가 존재하는데, 예를 들어 `Print`, `Println`이다. 이 함수들은 형식 문자열을 취하지 않는 대신 각 매개변수에 대하여 기본 형식을 생성한다. `Println` 버전들은 매개변수 사이에 공백을 삽입하고 출력에 줄바꿈을 추가한다. `Print` 버전들은 인수 양쪽이 다 문자열이 아닌 경우에만 공백을 삽입한다. 아래 예시에서 각 라인은 동일한 출력을 만든다.
+
+```go
+fmt.Printf("Hello %d\n", 23)
+fmt.Fprint(os.Stdout, "Hello ", 23, "\n")
+fmt.Println("Hello", 23)
+fmt.Println(fmt.Sprint("Hello ", 23))
+```
+
+포맷팅된 print 함수 `fmt.Fprint`와 유사 함수들은 첫 번째 매개변수로 `io.Writer` 인터페이스를 구현한 객체를 취한다. `os.Stdout`와 `os.Stderr` 변수는 익숙한 예시이다.
+
+여기서부터는 C로부터 갈라지기 시작한다. 첫째, `%d`와 같은 숫자 형식은 부호 플래그나 크기를 취하지 않는 대신, 출력 루틴은 이 속성을 정하기 위한 매개변수 타입을 사용한다.
+
+```go
+var x uint64 = 1<<64 - 1
+fmt.Printf("%d %x; %d %x\n", x, x, int64(x), int64(x))
+```
+위 예시는 다음과 같이 출력한다.
+
+```
+18446744073709551615 ffffffffffffffff; -1 -1
+```
+정수 소수점과 같이 기본 변환을 원하는 경우, 다목적의 형식 `%v`("value"를 위한)을 사용할 수 있다. 결과는 `Print`, `Println`의 출력과 같다. 또한, 해당 포맷은 어떤 값이어도 출력할 수 있으며, 배열 슬라이스, 구조체, 맵도 출력한다. 다음은 이전 섹션에서 정의한 타임존 맵에 대한 print 구문이다.
+
+```go
+fmt.Printf("%v\n", timeZone)  // or just fmt.Println(timeZone)
+```
+
+이는 다음과 같이 출력한다.
+
+```
+map[CST:-21600 EST:-18000 MST:-25200 PST:-28800 UTC:0]
+```
+
+맵의 경우, `Printf`와 유사 함수들은 출력을 key 사전순으로 정렬한다.
+
+구조체를 출력할 때, 수정된 형식 `%+v`는 구조체의 필드를 필드명으로 주석을 달아주고, `%#v`는 어떤 값이든 완전한 Go 문법으로 값을 출력한다.
+
+```go
+type T struct {
+    a int
+    b float64
+    c string
+}
+t := &T{ 7, -2.35, "abc\tdef" }
+fmt.Printf("%v\n", t)
+fmt.Printf("%+v\n", t)
+fmt.Printf("%#v\n", t)
+fmt.Printf("%#v\n", timeZone)
+```
+
+```
+&{7 -2.35 abc   def}
+&{a:7 b:-2.35 c:abc     def}
+&main.T{a:7, b:-2.35, c:"abc\tdef"}
+map[string]int{"CST":-21600, "EST":-18000, "MST":-25200, "PST":-28800, "UTC":0}
+```
+(`&`에 주목하라.) 인용된 문자열 포맷은 `%q`을 이용해 string 또는 []byte 타입의 값에 적용될 때 가능하다. 대안 포맷 `%#q`는 가능하다면 backquote를 사용한다.(`%q` 포맷은 integer, rune에 적용되며, single-quoted rune 상수를 만든다.) 또한, `%x`는 string, byte 배열, byte 슬라이스, integer에 적용되여 긴 16진수 문자열을 생성하는데, (`% x`) 포맷처럼 스페이스를 중간에 넣으면 출력하는 byte 사이에 공백을 넣어 준다.
+
+또다른 유용한 포맷으로 `%T`는 값의 타입을 출력한다.
+
+```go
+fmt.Printf("%T\n", timeZone)
+```
+위의 예시는 다음을 출력한다.
+```
+map[string]int
+```
+
+커스텀 타입의 기본 포맷을 제어하기 위해서 필요한 것은 타입에 대한 string 시그니처 `String()` 메서드를 정의하는 것이다. 우리가 정의한 단순한 타입 T에 대하여는 아래와 같은 포맷을 가질 수 있다.
+
+```go
+func (t *T) String() string {
+    return fmt.Sprintf("%d/%g/%q", t.a, t.b, t.c)
+}
+fmt.Printf("%v\n", t)
+```
+다음과 같이 출력한다.
+```
+7/-2.35/"abc\tdef"
+```
+(타입 `T` 값과 `T`에 대한 포인터도 함께 출력해야하는 경우, `String`의 리시버는 값 타입이어야 한다. 예시에서는 포인터를 사용했는데, struct 타입에 대해서 더 효율적이고 Go언어답기 때문이다.)
+
+우리가 정의한 String 메서드는 `Sprintf`를 호출할 수 있다. print 루틴이 재진입이 충분히 가능하고 예시와 같이 감싸도 되기 때문이다. 하지만 이 방식에 대해 한가지 이해하고 넘어가야 하는 매우 중요한 디테일이 있다. String 메서드를 만들면서 Sprintf를 호출할 때 다시 String 메서드로 영구적으로 재귀하는 방식을 사용하면 안 된다. 이는 Sprintf 호출이 리시버를 string처럼 직접 출력하는 경우 발생할 수 있는데, 그렇게 되면 다시 같은 메서들르 호출하게 될 것이다. 이는 다음 예시에서 보는 것처럼 흔하고 쉽게 하는 실수이다.
+
+```go
+type MyString string
+
+func (m MyString) String() string {
+    return fmt.Sprintf("MyString=%s", m) // Error: will recur forever.
+}
+```
+
+이러한 실수는 쉽게 고칠 수 있다. 인수를 메서드를 갖지 않는 기본적인 문자열 타입으로 변환하는 것이다.
+
+```go
+type MyString string
+func (m MyString) String() string {
+    return fmt.Sprintf("MyString=%s", string(m)) // OK: note conversion.
+}
+```
+
+initialization 섹션에서 재귀를 피하기 위한 또다른 기술을 볼 것이다.
+
+또다른 출력 기법으로서 print 루틴의 인수를 직접 다른 루틴으로 전달하는 것이 있다. `Printf`의 시그니처는 마지막 인수로서 타입 `...interface{}`을 사용하여 임의의 숫자의 파라미터가 포맷 다음에 나타날 수 있음을 명시한다.
+
+```go
+func Printf(format string, v ...interface{}) (n int, err error) {
+```
+
+`Printf` 함수 내에, `v`는 타입 `[]interface{}`의 변수처럼 동작하지만 만약 다른 가변 인수 함수에 대입되면, 보통의 인수 리스트처럼 동작한다. 다음은 위에서 사용된 `log.Println` 함수의 구현이다. 실제 포맷팅을 위하여 인수를 `fmt.Sprintln`에 직접 전달한다.
+
+```go
+// Println prints to the standard logger in the manner of fmt.Println.
+func Println(v ...interface{}) {
+    std.Output(2, fmt.Sprintln(v...))  // Output takes parameters (int, string)
+}
+```
+
+`Sprintln`의 중첩된 호출에서 `v` 다음에 `...`를 적음으로써 컴파일러에게 `v`를 인수 리스트로 취급하라고 말해준다. 그렇지 않으면 `v`를 하나의 slice 인수로 전달한다.
+
+여기서 살펴본 출력에 관한 내용보다 훨씬 더 많은 내용이 있다. `fmt` 패키지에 대한 godoc 문서를 통해 자세한 내용을 확인하자.
+
+그런데, `...` 파라미터는 특정한 타입을 가질 수도 있다. 예를 들어, 정수 리스트의 최소값을 고르는 `min` 함수의 `...int`를 보자.
+
+```go
+func Min(a ...int) int {
+    min := int(^uint(0) >> 1)  // largest int
+    for _, i := range a {
+        if i < min {
+            min = i
+        }
+    }
+    return min
+}
+```
+
 ## Append
 
+이제 `append` 내장함수의 설계를 설명한다. `append`의 시그니처는 위의 커스텀 `Append` 함수와 다르다. 도식적으로 다음과 같다.
+
+```go
+func append(slice []T, elements ...T) []T
+```
+
+`T`는 어떤 타입의 플레이스홀더이다. Go에서는 호출자에 의해 결정되는 타입 T를 쓰는 함수를 만들 수 없다. 그래서 append는 내장함수인 것이다. 컴파일러의 지원이 필요하다.
+
+append가 하는 일은 slice의 끝에 요소들을 붙이고 결과를 반환하는 것이다. 결과는 반환되어야 하는데 왜냐하면, 손으로 작성한 `Append`와 같이 내부의 배열은 변할 수 있기 때문이다. 간단한 예시를 보자.
+
+```go
+x := []int{1,2,3}
+x = append(x, 4, 5, 6)
+fmt.Println(x)
+```
+
+```
+[1 2 3 4 5 6]
+```
+append는 `Printf`처럼 임의의 수의 인수를 모으며 작동한다.
+
+그러나 만약 `Append`와 같이 slice에 slice를 붙이고 싶다면 어떻게 해야 할까? 쉽다. 위에서 Output을 호출하면서 그랬듯이 호출 위치에서 `...`를 사용하는 것이다. 아래 코드는 위와 동일한 결과를 생성한다.
+
+```go
+x := []int{1,2,3}
+y := []int{4,5,6}
+x = append(x, y...)
+fmt.Println(x)
+```
+`...`이 없다면 타입이 틀리기 때문에 컴파일되지 않는다. `y`는 int 타입이 아니다.
