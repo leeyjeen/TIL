@@ -72,6 +72,59 @@ func (s Sequence) String() string {
 
 ## Interface conversions and type assertions
 
+타입 스위치(Type switch)는 변환의 한 형태이다. 인터페이스를 받아서 switch 구문의 각 case마다 돌면서 case의 타입으로 변환해준다. 다음은 `fmt.Printf` 코드가 타입 스위치를 이용하여 값을 문자열로 바꾸는 방법의 간단한 버전을 보여준다. 만약 이미 문자열이라면, 인터페이스의 실제 문자열 값을, String 메서드를 갖고 있다면, 메서드 호출 결과를 사용한다.
+
+```go
+type Stringer interface {
+    String() string
+}
+
+var value interface{} // Value provided by caller.
+switch str := value.(type) {
+case string:
+    return str
+case Stringer:
+    return str.String()
+}
+```
+
+첫 번째 case는 구체적인 값을 찾는다. 두 번째 case는 인터페이스를 또다른 인터페이스로 변환한다. 이런 방법으로 타입을 섞어서 사용해도 상관 없다.
+
+우리가 신경 써야 하는 타입이 하나만 있다면 어떻게 할까? 값이 string 타입인 것을 알고 있고 단지 추출하고 싶을 경우는? case가 하나인 타입 스위치를 사용할 수 있지만, type assertion을 사용할 수 있다. type assertion은 인터페이스 값을 받아서 이로부터 명시된 타입의 값을 추출한다. 문법은 타입 스위치로부터 빌려왔지만, type 키워드 대신 타입을 명시하여 사용한다.
+
+```go
+value.(typeName)
+```
+
+결과로 `typeName`이라는 정적 타입의 새로운 값이 나온다. 해당 타입은 인터페이스로 전달된 구체적인 타입이거나, 값이 변환될 수 있는 두 번째 인터페이스 타입이어야 한다. 값에서 문자열을 추출하기 위해 다음과 같이 작성할 수 있다.
+
+```go
+str := value.(string)
+```
+
+값이 문자열을 포함하지 않는다면 프로그램은 런타임 에러가 발생할 것이다. 이를 방지하기 위해 "comma, ok" 구문을 사용하여 값이 문자열인지 안전하게 테스트하자.
+
+```go
+str, ok := value.(string)
+if ok {
+    fmt.Printf("string value is: %q\n", str)
+} else {
+    fmt.Printf("value is not a string\n")
+}
+```
+
+type assertion이 실패한다면, `str`은 여전히 존재하며 string 타입이지만, zero 값인 비어 있는 문자열이 될 것이다.
+
+용량(capability)에 대한 설명으로서, 다음은 이번 섹션의 앞에 나왔던 타입 스위치와 동일한 if-else 구문이다.
+
+```go
+if str, ok := value.(string); ok {
+    return str
+} else if str, ok := value.(Stringer); ok {
+    return str.String()
+}
+```
+
 ## Generality
 
 ## Interfaces and methods
