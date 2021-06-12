@@ -127,4 +127,34 @@ if str, ok := value.(string); ok {
 
 ## Generality
 
+어떤 타입이 인터페이스를 구현하기 위해서만 존재하고 인터페이스의 어떤 메서드도 외부에 노출(export)하지 않는다면, 해당 타입은 노출시킬 필요가 없다. 인터페이스만 노출시킨다면, 값이 인터페이스에 설명된 것 이상의 흥미로운 동작을 하지 않는다는 것을 알 수 있다. 또한 공통된 메서드의 모든 인스턴스에 문서를 반복해서 작성할 필요가 없어진다.
+
+이러한 경우, 생성자는 구현 타입보다는 인터페이스 값을 반환해야 한다. 예를 들어, 해시 라이브러리의 `crc32.NewIEEE`와 `adler32.New`는 둘 다 인터페이스 타입 `hash.Hash32`를 반환한다. Go 프로그램에서 Adler-32에 대한 CRC-32 알고리즘을 대체하려면 생성자 호출만 변경하면 된다. 나머지 코드는 알고리즘 변경에 영향받지 않는다.
+
+유사한 접근 방식을 사용하면 다양한 `crypto` 패키지의 스트리밍 암호 알고리즘을 함께 연결하는 블록 암호와 분리할 수 있다. `crypto/cipher` 패키지의 블록 인터페이스는 단일 데이터 블록의 암호화를 제공하는 블록 암호의 동작을 지정한다. 그런 다음, `bufio` 패키지와 유사하게, 이 인터페이스를 구현하는 암호 패키지는 블록 암호화의 세부 사항을 알지 못한 채 스트림 인터페이스로 표현되는 스트리밍 암호를 구성하는 데 사용될 수 있다.
+
+`crypto/cipher` 인터페이스는 다음과 같다.
+
+```go
+type Block interface {
+    BlockSize() int
+    Encrypt(dst, src []byte)
+    Decrypt(dst, src []byte)
+}
+
+type Stream interface {
+    XORKeyStream(dst, src []byte)
+}
+```
+
+다음은 블록 암호를 스트리밍 암호로 변환하는 카운터 모드(CTR) 스트림의 정의이다. 블록 암호의 세부 정보는 추상화된다.
+
+```go
+// NewCTR returns a Stream that encrypts/decrypts using the given Block in
+// counter mode. The length of iv must be the same as the Block's block size.
+func NewCTR(block Block, iv []byte) Stream
+```
+
+`NewCTR`는 하나의 특정한 암호화 알고리즘과 데이터 소스에만 적용되지 않고, 블록 인터페이스와 스트림의 모든 구현에 적용된다. 이는 인터페이스 값을 반환하기 때문에, 다른 암호화 모드를 CRT 암호화로 대체하는 것은 로컬 변화이다. 생성자 호출은 수정되어야 하지만, 둘러싼 코드가 결과를 `Stream`으로만 간주해야 하므로, 차이를 인식하지 못한다.
+
 ## Interfaces and methods
