@@ -158,3 +158,107 @@ func NewCTR(block Block, iv []byte) Stream
 `NewCTR`는 하나의 특정한 암호화 알고리즘과 데이터 소스에만 적용되지 않고, 블록 인터페이스와 스트림의 모든 구현에 적용된다. 이는 인터페이스 값을 반환하기 때문에, 다른 암호화 모드를 CRT 암호화로 대체하는 것은 로컬 변화이다. 생성자 호출은 수정되어야 하지만, 둘러싼 코드가 결과를 `Stream`으로만 간주해야 하므로, 차이를 인식하지 못한다.
 
 ## Interfaces and methods
+
+거의 모든 것은 메서드를 붙일 수 있기 때문에, 즉 모든 것은 인터페이스를 만족시킬 수 있다. 하나의 예시가 `Handler` 인터페이스를 정의하는 `http` 패키지에 있다. `Handler`를 구현하는 모든 개체는 HTTP 요청을 처리할 수 있다.
+
+```go
+type Handler interface {
+    ServeHTTP(ResponseWriter, *Request)
+}
+```
+
+`ResponseWriter`는  클라이언트에게 응답을 반환하기 위해 필요한 메서드에 대한 액세스를 제공하는 인터페이스이다. 해당 메서드들은 표준 `Write` 메서드를 포함하므로, `http.ResponseWriter`는 `io.Writer`가 사용될 수 있는 곳이면 어디서나 사용할 수 있다. `Request`는 클라이언트로부터 파싱된 표현을 포함하는 구조체이다.
+
+간단하게, POST를 무시하고 HTTP 요청이 항상 GET이라고 가정해보자. 이러한 단순화는 핸들러 설정 방식에 영향을 미치지 않는다. 다음은 페이지 방문 횟수를 계산하는 간단한 처리기 구현이다.
+
+```go
+// Simple counter server.
+type Counter struct {
+    n int
+}
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    ctr.n++
+    fmt.Fprintf(w, "counter = %d\n", ctr.n)
+}
+```
+
+(우리 주제를 가지고, `Fprintf`가 `http.ResponseWriter`로 출력하는 방법을 참고해보자.) 실제 서버에서 `ctr.n`에 대한 접근은 동시 접근으로부터 보호가 필요하다. 자세한 내용은 `sync`, `atomic` 패키지를 참조하자.
+
+참고로 URL 트리의 노드에 서버를 연결하는 방법은 다음과 같다.
+
+```go
+import "net/http"
+...
+ctr := new(Counter)
+http.Handle("/counter", ctr)
+```
+
+하지만 왜 `Counter`를 구조체로 만들었을까? 정수 하나만이 필요한게 다인데. (리시버는 포인터여야 호출자가 increment를 볼 수 있다.)
+
+```go
+// Simpler counter server.
+type Counter int
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    *ctr++
+    fmt.Fprintf(w, "counter = %d\n", *ctr)
+}
+```
+
+만약 프로그램에서 페이지 방문에 대한 알림을 받아야 하는 내부 상태값들을 가진다면 어떻게 해야 할까? 웹페이지에 채널(channel)을 연결하자.
+
+```go
+// A channel that sends a notification on each visit.
+// (Probably want the channel to be buffered.)
+type Chan chan *http.Request
+
+func (ch Chan) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    ch <- req
+    fmt.Fprint(w, "notification sent")
+}
+```
+
+마지막으로, 서버 바이너리를 호출할 때 사용되는 인수를 `/args`에 표시하려고 한다고 해보자. 인수를 출력하는 함수를 작성하는 것은 쉽다.
+
+```go
+func ArgServer() {
+    fmt.Println(os.Args)
+}
+```
+
+어떻게 이것을 HTTP 서버로 바꿀 수 있을까? `ArgServer`를 우리가 무시하는 값의 어떤 타입의 메서드로 만들 수 있지만, 더 깔끔한 방법이 있다. 포인터와 인터페이스를 제외한 어떤 타입에 대해서도 메서드를 정의할 수 있기 때문에, 함수에 대한 메서드를 작성할 수 있다. `http` 패키지는 다음 코드를 포함하고 있다.
+
+```go
+// The HandlerFunc type is an adapter to allow the use of
+// ordinary functions as HTTP handlers.  If f is a function
+// with the appropriate signature, HandlerFunc(f) is a
+// Handler object that calls f.
+type HandlerFunc func(ResponseWriter, *Request)
+
+// ServeHTTP calls f(w, req).
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, req *Request) {
+    f(w, req)
+}
+```
+
+`HandlerFunc`는 메서드 `ServeHTTP`를 갖는 타입으로, 해당 타입의 값들은 `HTTP` 요청을 처리할 수 있다. 메서드의 구현을 보자. 리시버는 함수 f이고, 메서드는 f를 호출한다. 이상하게 보일 수 있지만, 이는 리시버가 채널로서 메서드가 채널에 메시지를 전송하는 것과 다를 것이 없다.
+
+`ArgServer`를 `HTTP` 서버로 만들기 위해, 우선 적절한 시그니처를 갖도록 수정해야 한다.
+
+```go
+// Argument server.
+func ArgServer(w http.ResponseWriter, req *http.Request) {
+    fmt.Fprintln(w, os.Args)
+}
+```
+
+`ArgServer`는 이제 `HandlerFunc`와 동일한 시그니처를 가지므로, 메서드에 접근하기 위한 타입으로 변환될 수 있다. 이전에 `Sequence`를 `IntSlice.Sort`에 대한 접근을 위하여 `IntSlice`로 변환했던 것과 비슷하다. 이를 셋업하기 위한 코드는 간결하다.
+
+```go
+http.Handle("/args", http.HandlerFunc(ArgServer))
+```
+
+누군가 페이지 `/args`에 방문하였을 때, 페이지에 설치된 핸들러는 `ArgServer` 값과 `HandlerFunc` 타입을 갖는다. HTTP 서버는 `ArgServer`를 리시버로 사용하여, 해당 타입의 `ServeHTTP` 메서드를 호출하고, 다시 `ArgServer`를 호출한다. (`HandlerFunc.ServeHTTP` 내부의 `f(w, req)` 호출을 통하여). 인수가 출력될 것이다.
+
+이번 섹션에서 구조체, 정수, 채널, 함수로부터 HTTP 서버를 만들어 보았다. 인터페이스는 거의 모든 타입에 대해 정의될 수 있는 메서드의 집합이기 때문이다.
