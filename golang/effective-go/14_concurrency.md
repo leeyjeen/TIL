@@ -156,8 +156,138 @@ func Serve(clientRequests chan *Request, quit chan bool) {
 
 ## Channels of channels
 
+Go의 가장 중요한 속성 중 하나는 채널이 다른 것과 마찬가지로 할당되고 전달될 수 있는 최고 수준의 값이라는 것이다. 이 속성은 일반적으로 안전한 병렬 역 다중화를 구현하는 데 사용된다.
+
+이전 섹션의 예시에서 `handle`은 이상적인 핸들러이지만 처리중인 타입을 정의하지 않았다. 해당 타입에 응답할 채널이 포함된 경우 각 클라이언트는 응답에 대한 자체 경로를 제공할 수 있다. 다음은 `Request` 타입의 개략적인 정의이다.
+
+```go
+type Request struct {
+    args        []int
+    f           func([]int) int
+    resultChan  chan int
+}
+```
+
+클라이언트는 함수와 인수는 물론 응답을 받을 요청 객체 내부의 채널을 제공한다.
+
+```go
+func sum(a []int) (s int) {
+    for _, v := range a {
+        s += v
+    }
+    return
+}
+
+request := &Request{[]int{3, 4, 5}, sum, make(chan int)}
+// Send request
+clientRequests <- request
+// Wait for response.
+fmt.Printf("answer: %d\n", <-request.resultChan)
+```
+
+서버 측에서는 핸들러 함수만 변경된다.
+
+```go
+func handle(queue chan *Request) {
+    for req := range queue {
+        req.resultChan <- req.f(req.args)
+    }
+}
+```
+
+실제로 사용하기 위해 더 많은 작업을 수행해야 하지만 이 코드는 속도 제한이 있는 병렬 non-blocking RPC 시스템에 대한 프레임워크이며 뮤텍스가 보이지 않는다.
 
 ## Parallelization
 
+이러한 아이디어의 또 다른 적용 분야는 여러 CPU 코어에 걸쳐 계산을 병렬화하는 것이다. 계산을 독립적으로 실행할 수 있는 개별 조각으로 분할할 경우 각 조각이 완료될 때 신호를 보낼 채널과 병렬화할 수 있다.
+
+이 이상적인 예시에서와 같이 한 벡터의 항목에 대해 수행하는 비용이 많이 드는 작업이 있고 각 항목에 대한 작업 값이 독립적이라고 가정해 보겠다.
+
+```go
+type Vector []float64
+
+// Apply the operation to v[i], v[i+1] ... up to v[n-1].
+func (v Vector) DoSome(i, n int, u Vector, c chan int) {
+    for ; i < n; i++ {
+        v[i] += u.Op(v[i])
+    }
+    c <- 1    // signal that this piece is done
+}
+```
+
+CPU당 하나씩 루프에서 개별적으로 조각을 시작한다. 어떤 순서로든 완료할 수 있지만 상관없다. 모든 고루틴을 시작한 후에 채널을 비워 완료 신호를 세기만 하면 된다.
+
+```go
+const numCPU = 4 // number of CPU cores
+
+func (v Vector) DoAll(u Vector) {
+    c := make(chan int, numCPU)  // Buffering optional but sensible.
+    for i := 0; i < numCPU; i++ {
+        go v.DoSome(i*len(v)/numCPU, (i+1)*len(v)/numCPU, u, c)
+    }
+    // Drain the channel.
+    for i := 0; i < numCPU; i++ {
+        <-c    // wait for one task to complete
+    }
+    // All done.
+}
+```
+
+`numCPU`에 대해 상수 값을 생성하는 대신 런타임에 적절한 값을 요구할 수 있다. 함수 `runtime.NumCPU()`는 시스템의 하드웨어 CPU 코어 수를 반환하여 쓸 수 있도록 한다.
+
+```go
+var numCPU = runtime.NumCPU()
+```
+
+또한 `runtime.GOMAXPROCS` 함수도 있다. Go 프로그램이 동시에 실행될 수 있는 사용자 지정 코어 수를 보고(또는 설정)한다. 기본적으로 `runtime.NumCPU()`값으로 설정되지만 비슷한 이름의 셸 환경 변수를 설정하거나 함수를 양수 호출하여 재정의할 수 있다. 0으로 호출하면 값만 쿼리된다. 따라서 사용자의 리소스 요청을 존중하려면 다음을 작성해야 한다.
+
+```go
+var numCPU = runtime.GOMAXPROCS(0)
+```
+
+여러 CPU에서 효율성을 위해 병렬로 계산을 실행하는 동시성(프로그램을 독립적으로 실행되는 구성 요소로 구성) 및 병렬성이라는 개념을 혼동하지 마라. Go의 동시성 기능으로 인해 일부 문제를 병렬 계산으로 쉽게 구조화할 수 있지만 Go는 병렬 언어가 아니라 동시 언어이며 모든 병렬화 문제가 Go의 모델에 맞는 것은 아니다. 차이점에 대한 논의는 블로그 포스트에 인용된 내용을 참고하라.
 
 ## A leaky buffer
+
+동시 프로그래밍 도구를 사용하면 비동시 아이디어를 더 쉽게 표현할 수 있다. 다음은 `RPC` 패키지에서 추상화된 예이다. `client` 고루틴은 일부 소스(아마 네트워크)에서 데이터를 수신하는 루프를 수행한다. 버퍼 할당 및 해제를 방지하기 위해 사용 가능한 목록을 유지하고 버퍼링된 채널을 사용하여 이를 나타낸다. 채널이 비어 있으면 새 버퍼가 할당된다. 메시지 버퍼가 준비되면 `serverChan`의 서버로 전송된다.
+
+```go
+var freeList = make(chan *Buffer, 100)
+var serverChan = make(chan *Buffer)
+
+func client() {
+    for {
+        var b *Buffer
+        // Grab a buffer if available; allocate if not.
+        select {
+        case b = <-freeList:
+            // Got one; nothing more to do.
+        default:
+            // None free, so allocate a new one.
+            b = new(Buffer)
+        }
+        load(b)              // Read next message from the net.
+        serverChan <- b      // Send to server.
+    }
+}
+```
+
+`server` 루프는 `client`로부터 각 메시지를 수신하고 처리한 다음 버퍼를 사용 가능한 목록으로 반환한다.
+
+```go
+func server() {
+    for {
+        b := <-serverChan    // Wait for work.
+        process(b)
+        // Reuse buffer if there's room.
+        select {
+        case freeList <- b:
+            // Buffer on free list; nothing more to do.
+        default:
+            // Free list full, just carry on.
+        }
+    }
+}
+```
+
+`client`는 `freeList`에서 버퍼를 검색하려고 한다. 사용할 수 없는 경우 새 항목을 할당한다. `server`의 `freeList`로의 send는 목록이 가득차지 않는 한 `b`를 다시 free list에 올려 놓는다. 이 경우 버퍼는 가비지 컬렉터에 의해 회수되도록 바닥에 떨어진다. (`select`문의 `default`절은 다른 `case`가 준비되지 않았을 때 실행된다. 즉, select는 절대 block되지 않는다.) 이 구현은 버퍼링된 채널과 가비지 컬렉터를 사용하여 몇 줄 만에 누출이 없는 버킷 목록을 작성한다.
