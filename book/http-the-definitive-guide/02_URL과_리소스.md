@@ -8,10 +8,10 @@
 
 - 사용자가 브라우저에 URL을 입력 → 브라우저는 화면 뒤에서 사용자가 원하는 리소스를 얻기 위해서 적절한 프로토콜을 사용하여 메시지를 전송
 
-`http://www.yujins-guitar.com/fender/telecaster.html` 이라는 URL을 불러오고 싶다고 가정하면,
+`http://www.shop-guitar.com/fender/telecaster.html` 이라는 URL을 불러오고 싶다고 가정하면,
 
 - `http`: URL의 **스킴**. 스킴은 웹 클라이언트가 리소스에 어떻게 접근하는지 알려준다. (어떻게)
-- `www.yujins-guitar.com`: **서버의 위치**. 웹 클라이언트가 *리소스가 어디에 호스팅되어 있는지* 알려준다. (어디에)
+- `www.shop-guitar.com`: **서버의 위치**. 웹 클라이언트가 *리소스가 어디에 호스팅되어 있는지* 알려준다. (어디에)
 - `/fender/telecaster.html`: **리소스의 경로**. 서버에 존재하는 로컬 리소스들 중에서 *요청받은 리소스가 무엇인지* 알려준다. (무엇을)
 
 대부분의 URL은 **'스킴://서버위치/경로'** 구조로 이루어져 있다.
@@ -94,7 +94,7 @@ URL의 가장 중요한 세 가지 컴포넌트는 스킴, 호스트, 경로다.
 
 리소스 형식의 범위를 좁히기 위해 질문이나 질의를 받을 수 있다. 편의상 많은 게이트웨이가 '&'로 나뉜 '이름=값' 쌍 형식의 질의 문자열을 원한다.
 
-예) `http://www.yujin-guitar.com/inventory-check.cgi?item=1004&color=white`
+예) `http://www.shop-guitar.com/inventory-check.cgi?item=1004&color=white`
 
 ### 프래그먼트
 
@@ -102,7 +102,7 @@ URL의 가장 중요한 세 가지 컴포넌트는 스킴, 호스트, 경로다.
 
 예를 들어 URL은 HTML 문서에 있는 특정 이미지나 일부분을 가리킬 수 있다.
 
-예) `http://www.yujin-guitar.com/tools.html#straps`
+예) `http://www.shop-guitar.com/tools.html#straps`
 
 HTTP 서버는 객체 일부가 아닌 전체만 다루기 때문에, 클라이언트는 서버에 프래그먼트를 전달하지 않는다. 브라우저가 서버로부터 전체 리소스를 내려받은 후, 프래그먼트를 사용하여 보고자 하는 리소스의 일부를 보여준다.
 
@@ -118,10 +118,10 @@ HTTP 서버는 객체 일부가 아닌 전체만 다루기 때문에, 클라이�
 
 예)
 
-- Base URL: `http://www.yujins-guitar.com/guitars.html`
+- Base URL: `http://www.shop-guitar.com/guitars.html`
 - 상대 URL: `./straps.html`
 
-→ 새로운 절대 URL: `http://www.yujins-guitar.com/straps.html`
+→ 새로운 절대 URL: `http://www.shop-guitar.com/straps.html`
 
 ### URL 확장
 
@@ -146,7 +146,7 @@ HTTP 서버는 객체 일부가 아닌 전체만 다루기 때문에, 클라이�
 
 예)
 
-- '~' 문자 → ASCII 코드: 126(0x7E) → URL: `http://yujins-guitar.com/%7Efender`
+- '~' 문자 → ASCII 코드: 126(0x7E) → URL: `http://shop-guitar.com/%7Efender`
 
 ### 문자 제한
 

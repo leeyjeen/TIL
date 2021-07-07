@@ -42,14 +42,14 @@ MIME 타입은 사선(/)으로 구분된 주 타입(primary object type)과 부 
 
 웹 서버 리소스는 각자 이름을 갖고 있기 때문에, 클라이언트는 관심 있는 리소스를 지목할 수 있다. 서버 리소스 이름은 **통합 자원 식별자**(uniform resource identifier, **URI**)로 불린다. URI는 ***정보 리소스를 고유하게 식별하고 위치를 지정***할 수 있다.
 
-예를 들어, '유진이의 기타 가게'의 웹 서버에 있는 이미지 리소스에 대한 URI라면 이런 식이다.
+예를 들어, '기타 가게'의 웹 서버에 있는 이미지 리소스에 대한 URI라면 이런 식이다.
 
-`http://www.yujins-guitar.com/guitars/telecaster.jpeg`
+`http://www.shop-guitar.com/guitars/telecaster.jpeg`
 
 - `http://`
     - HTTP 프로토콜을 사용하라
-- `www.yujins-guitar.com`
-    - www.yujins-guitar.com으로 이동하라
+- `www.shop-guitar.com`
+    - www.shop-guitar.com으로 이동하라
 - `/guitars/telecaster.jpeg`
     - /guitars/telecaster.jpeg라고 불리는 리소스를 가져와라
 
@@ -64,7 +64,7 @@ URI에는 두 가지 종류가 있다. ***URL과 URN***이라는 것이다.
 대부분의 URL은 세 부분으로 이루어진 표준 포맷을 따른다.
 
 - **스킴**(scheme): 리소스에 접근하기 위해 사용되는 프로토콜 (예: `http://`)
-- **서버**의 인터넷 **주소** (예: `www.yujins-guitar.com`)
+- **서버**의 인터넷 **주소** (예: `www.shop-guitar.com`)
 - 웹 서버의 **리소스** (예: `/guitars/telecaster.jpeg`)
 
 ### URN (uniform resource name)
@@ -87,7 +87,7 @@ HTTP 트랜잭션의 구성:
 
     ```
     GET /guitars/telecaster.jpeg HTTP/1.0
-    Host: www.yujins-guitar.com
+    Host: www.shop-guitar.com
     ```
 
 - 응답 결과(서버→클라이언트)
